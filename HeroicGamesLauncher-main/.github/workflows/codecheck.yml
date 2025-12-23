@@ -1,0 +1,15 @@
+name: Code check
+
+on:
+  pull_request:
+    branches: [main, stable]
+  workflow_dispatch:
+
+jobs:
+  codecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/install-deps
+      - name: Check Typescript syntax
+        run: pnpm codecheck
