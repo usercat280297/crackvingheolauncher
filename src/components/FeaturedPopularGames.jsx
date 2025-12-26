@@ -585,9 +585,9 @@ export default function FeaturedPopularGames() {
         {games.map((game, index) => {
           const appId = game.appId || game.id;
           const heroData = heroImages[appId] || {};
-          // Prioritize: beautiful name > hero data name > game.name
-          const beautifulName = beautifulNames[appId];
-          const gameName = beautifulName || heroData.name || game.name || game.title;
+          // Use the name from heroData (which comes from Steam API backend with SteamGridDB integration)
+          // as fallback use beautifulNames, then game.name
+          const gameName = heroData.name || beautifulNames[appId] || game.name || game.title || 'Game';
           const heroImage = heroData.heroImage || game.headerImage || game.cover_image || `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/header.jpg`;
           
           return (
@@ -654,29 +654,31 @@ export default function FeaturedPopularGames() {
                   </p>
                 )}
 
-                {/* Stats - Only show if values exist */}
-                <div className="slide-stats">
-                  {game.playcount && game.playcount > 0 && (
-                    <div className="stat">
-                      <span className="stat-label">Người chơi</span>
-                      <span className="stat-value">
-                        {(game.playcount / 1000).toFixed(0)}K+
-                      </span>
-                    </div>
-                  )}
-                  {game.metacritic?.score && game.metacritic.score > 0 && (
-                    <div className="stat">
-                      <span className="stat-label">Điểm Metacritic</span>
-                      <span className="stat-value">{game.metacritic.score}</span>
-                    </div>
-                  )}
-                  {game.priceUSD && game.priceUSD > 0 && (
-                    <div className="stat">
-                      <span className="stat-label">Giá</span>
-                      <span className="stat-value">${game.priceUSD}</span>
-                    </div>
-                  )}
-                </div>
+                {/* Stats - Only show if at least one stat has valid data */}
+                {(game.playcount > 0 || (game.metacritic?.score && game.metacritic.score > 0) || (game.priceUSD && game.priceUSD > 0)) && (
+                  <div className="slide-stats">
+                    {game.playcount && game.playcount > 0 && (
+                      <div className="stat">
+                        <span className="stat-label">Người chơi</span>
+                        <span className="stat-value">
+                          {(game.playcount / 1000).toFixed(0)}K+
+                        </span>
+                      </div>
+                    )}
+                    {game.metacritic?.score && game.metacritic.score > 0 && (
+                      <div className="stat">
+                        <span className="stat-label">Điểm Metacritic</span>
+                        <span className="stat-value">{game.metacritic.score}</span>
+                      </div>
+                    )}
+                    {game.priceUSD && game.priceUSD > 0 && (
+                      <div className="stat">
+                        <span className="stat-label">Giá</span>
+                        <span className="stat-value">${game.priceUSD}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </Link>
