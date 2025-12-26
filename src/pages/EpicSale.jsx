@@ -13,7 +13,7 @@ export default function EpicSale() {
     try {
       const response = await fetch('http://localhost:3000/api/sales/epic/free');
       const data = await response.json();
-      if (data.success) setGames(data.games);
+      if (data.success) setGames(data.data);
     } catch (error) {
       console.error('Error:', error);
     } finally {
@@ -24,7 +24,7 @@ export default function EpicSale() {
   return (
     <div className="min-h-screen p-8">
       <div className="mb-8">
-        <Link to="/" className="text-purple-400 hover:text-purple-300 flex items-center gap-2 mb-4">
+        <Link to="/home" className="text-purple-400 hover:text-purple-300 flex items-center gap-2 mb-4">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
           Back to Store
         </Link>
@@ -70,3 +70,4 @@ export default function EpicSale() {
     </div>
   );
 }
+

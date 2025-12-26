@@ -22,6 +22,9 @@ import Register from './pages/Register'
 import Login from './pages/Login'
 import Profile from './pages/Profile'
 import Wishlist from './pages/Wishlist'
+import LockScreen from './pages/LockScreen'
+import Bypass from './pages/Bypass'
+import OnlineFix from './pages/OnlineFix'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -34,7 +37,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
               <BrowserRouter>
               <Routes>
                 <Route path="/" element={<App />}>
-                  <Route index element={<Store />} />
+                  <Route index element={<LockScreen />} />
+                  <Route path="home" element={<Store />} />
+                  <Route path="bypass" element={<Bypass />} />
+                  <Route path="onlinefix" element={<OnlineFix />} />
                   <Route path="library" element={<Library />} />
                   <Route path="downloads" element={<Downloads />} />
                   <Route path="wishlist" element={<Wishlist />} />

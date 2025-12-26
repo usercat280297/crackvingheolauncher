@@ -1,0 +1,44 @@
+{
+  "id": 1245620,
+  "steamAppId": 1245620,
+  "title": "ELDEN RING",
+  "description": "THE CRITICALLY ACCLAIMED FANTASY ACTION RPG. Rise, Tarnished, and be guided by grace to brandish the power of the Elden Ring and become an Elden Lord in the Lands Between.",
+  "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1245620/header.jpg?t=1748630546",
+  "screenshots": [
+    "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1245620/ss_943bf6fe62352757d9070c1d33e50b92fe8539f1.600x338.jpg?t=1748630546",
+    "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1245620/ss_dcdac9e4b26ac0ee5248bfd2967d764fd00cdb42.600x338.jpg?t=1748630546",
+    "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1245620/ss_3c41384a24d86dddd58a8f61db77f9dc0bfda8b5.600x338.jpg?t=1748630546",
+    "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1245620/ss_e0316c76f8197405c1312d072b84331dd735d60b.600x338.jpg?t=1748630546",
+    "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1245620/ss_ef61b771ee6b269b1f0cb484233e07a0bfb5f81b.600x338.jpg?t=1748630546"
+  ],
+  "trailer": null,
+  "genres": [
+    "Action",
+    "RPG"
+  ],
+  "tags": [],
+  "releaseDate": "Feb 24, 2022",
+  "developers": [
+    "FromSoftware, Inc."
+  ],
+  "publishers": [
+    "FromSoftware, Inc.",
+    "Bandai Namco Entertainment"
+  ],
+  "basePrice": 59.99,
+  "currentPrice": 38.99,
+  "discount": 35,
+  "isFree": false,
+  "metacritic": 94,
+  "platforms": {
+    "windows": true,
+    "mac": false,
+    "linux": false
+  },
+  "reviewScore": null,
+  "reviewType": null,
+  "positiveReviews": 0,
+  "negativeReviews": 0,
+  "required_age": "16",
+  "lastUpdated": 1766709370950
+}

@@ -158,6 +158,32 @@ class QuickGameSearch {
         const searchTerm = query.toLowerCase().trim();
         if (!searchTerm || searchTerm.length < 1) return [];
 
+        // Check if query is an AppID (pure number)
+        if (/^\d+$/.test(searchTerm)) {
+            const appId = searchTerm;
+            if (this.gameNames.has(appId)) {
+                return [{
+                    appId: parseInt(appId),
+                    name: this.gameNames.get(appId),
+                    file: `${appId}.lua`,
+                    matchType: 'appid',
+                    score: 1.0
+                }];
+            }
+            // AppID not in cache, try to fetch
+            const name = await this.fetchGameName(parseInt(appId));
+            if (name) {
+                return [{
+                    appId: parseInt(appId),
+                    name: name,
+                    file: `${appId}.lua`,
+                    matchType: 'appid',
+                    score: 1.0
+                }];
+            }
+            return [];
+        }
+
         const normalized = this.normalizeText(searchTerm);
         const searchWords = normalized.split(' ').filter(w => w.length > 0);
         
@@ -175,7 +201,7 @@ class QuickGameSearch {
             const originalName = data.original;
             const gameWords = gameName.split(' ');
             
-            // Exact match
+            // Exact match (highest priority)
             if (gameName === normalized) {
                 results.exact.push({
                     appId: parseInt(appId),
@@ -197,47 +223,67 @@ class QuickGameSearch {
             }
             // Contains full query
             else if (gameName.includes(normalized)) {
+                const position = gameName.indexOf(normalized);
+                const positionScore = 1 - (position / gameName.length) * 0.1;
                 results.contains.push({
                     appId: parseInt(appId),
                     name: originalName,
                     file: `${appId}.lua`,
                     matchType: 'contains',
-                    score: 0.85
+                    score: 0.85 * positionScore
                 });
             }
             // Multi-word match - all words present
             else if (searchWords.length > 1) {
+                // Ưu tiên: Tất cả từ phải xuất hiện THEO THỨ TỰ và GẦN NHAU
                 const matchedWords = searchWords.filter(word => 
                     gameWords.some(gw => gw.includes(word) || word.includes(gw))
                 );
                 
                 if (matchedWords.length === searchWords.length) {
-                    // All search words found
-                    results.wordMatch.push({
-                        appId: parseInt(appId),
-                        name: originalName,
-                        file: `${appId}.lua`,
-                        matchType: 'word-match',
-                        score: 0.75 + (matchedWords.length / searchWords.length) * 0.1
-                    });
-                } else if (matchedWords.length > 0) {
-                    // Partial word match
-                    const partialScore = (matchedWords.length / searchWords.length) * 0.6;
-                    if (partialScore >= 0.4) {
-                        results.fuzzy.push({
+                    // Kiểm tra xem các từ có theo thứ tự không
+                    let inOrder = true;
+                    let lastIndex = -1;
+                    
+                    for (const searchWord of searchWords) {
+                        const foundIndex = gameWords.findIndex((gw, idx) => 
+                            idx > lastIndex && (gw.includes(searchWord) || searchWord.includes(gw))
+                        );
+                        
+                        if (foundIndex === -1) {
+                            inOrder = false;
+                            break;
+                        }
+                        lastIndex = foundIndex;
+                    }
+                    
+                    if (inOrder) {
+                        // Tất cả từ có theo thứ tự - điểm cao
+                        results.wordMatch.push({
                             appId: parseInt(appId),
                             name: originalName,
                             file: `${appId}.lua`,
-                            matchType: 'partial',
-                            score: partialScore
+                            matchType: 'word-match-ordered',
+                            score: 0.90
+                        });
+                    } else {
+                        // Có đủ từ nhưng không theo thứ tự - điểm thấp hơn
+                        results.wordMatch.push({
+                            appId: parseInt(appId),
+                            name: originalName,
+                            file: `${appId}.lua`,
+                            matchType: 'word-match',
+                            score: 0.70
                         });
                     }
                 }
+                // Bỏ partial match - chỉ chấp nhận khi có đủ TẤT CẢ từ
             }
             // Single word fuzzy match
             else {
                 const similarity = this.calculateSimilarity(normalized, gameName);
-                if (similarity >= 0.5) {
+                // Tăng threshold lên 0.7 để giảm kết quả không liên quan
+                if (similarity >= 0.7) {
                     results.fuzzy.push({
                         appId: parseInt(appId),
                         name: originalName,
@@ -249,9 +295,20 @@ class QuickGameSearch {
             }
         }
 
-        // Sort each category
+        // Sort each category by score
+        results.contains.sort((a, b) => b.score - a.score);
         results.wordMatch.sort((a, b) => b.score - a.score);
         results.fuzzy.sort((a, b) => b.score - a.score);
+
+        // Nếu có exact match, chỉ trả về exact + top 5 kết quả khác
+        if (results.exact.length > 0) {
+            const others = [
+                ...results.prefix.slice(0, 2),
+                ...results.contains.slice(0, 2),
+                ...results.wordMatch.slice(0, 1)
+            ];
+            return [...results.exact, ...others].slice(0, limit);
+        }
 
         // Combine results in priority order
         const combined = [

@@ -37,6 +37,24 @@ const GameSchema = new mongoose.Schema({
   backgroundImage: {
     type: String
   },
+  // ✨ Thêm schema cho high-quality images
+  images: {
+    // SteamGridDB images
+    cover: String,           // Vertical poster (600x900)
+    coverThumb: String,
+    hero: String,            // Wide banner (1920x620)
+    heroThumb: String,
+    logo: String,            // Transparent logo
+    logoThumb: String,
+    icon: String,            // Square icon (256x256)
+    iconThumb: String,
+    
+    // Steam CDN fallbacks
+    steamHeader: String,
+    steamLibrary: String,
+    steamBackground: String,
+    screenshots: [String]
+  },
   developers: [{
     type: String
   }],

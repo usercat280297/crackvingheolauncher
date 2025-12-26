@@ -7,6 +7,20 @@ export default function Library() {
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState('grid');
 
+  useEffect(() => {
+    fetchGames();
+  }, []);
+
+  const fetchGames = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/games');
+      const data = await response.json();
+      setInstalledGames(data.games || []);
+    } catch (error) {
+      console.error('Error fetching games:', error);
+    }
+  };
+
   const filteredGames = installedGames.filter(g => 
     g.title.toLowerCase().includes(search.toLowerCase())
   );
@@ -65,6 +79,12 @@ export default function Library() {
                   src={game.cover}
                   alt={game.title}
                   className="w-full h-full object-cover"
+                  loading="lazy"
+                  onError={(e) => {
+                    // Fallback nếu ảnh lỗi
+                    e.target.src = game.hero || 
+                      `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.id}/header.jpg`;
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <div className="absolute bottom-0 left-0 right-0 p-4">
@@ -93,6 +113,12 @@ export default function Library() {
                   src={game.cover}
                   alt={game.title}
                   className="w-24 h-32 object-cover rounded-lg"
+                  loading="lazy"
+                  onError={(e) => {
+                    // Fallback nếu ảnh lỗi
+                    e.target.src = game.hero || 
+                      `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.id}/header.jpg`;
+                  }}
                 />
                 <div className="flex-1 flex flex-col justify-between">
                   <div>

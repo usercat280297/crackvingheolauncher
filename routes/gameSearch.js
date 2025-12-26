@@ -16,10 +16,17 @@ router.get('/search', async (req, res) => {
         const results = await gameSearch.search(q, parseInt(limit));
         const suggestions = await gameSearch.getSuggestions(q, 5);
         
+        // Sort: exact match first, then by score
+        const sortedResults = results.sort((a, b) => {
+            if (a.matchType === 'exact' && b.matchType !== 'exact') return -1;
+            if (a.matchType !== 'exact' && b.matchType === 'exact') return 1;
+            return b.score - a.score;
+        });
+        
         res.json({
             query: q,
-            count: results.length,
-            results: results.map(game => ({
+            count: sortedResults.length,
+            results: sortedResults.map(game => ({
                 appId: game.appId,
                 name: game.name,
                 file: game.file,

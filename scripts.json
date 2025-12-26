@@ -1,0 +1,7 @@
+{
+  "scripts": {
+    "update:images": "node update-all-images.js",
+    "update:images:all": "node update-all-images.js --all",
+    "test:steamgriddb": "node test-steamgriddb.js"
+  }
+}

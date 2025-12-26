@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const Game = require('../models/Game');
 const steamAPIService = require('./enhancedSteamAPI');
+const steamGridDB = require('./SteamGridDBService');
 const luaParser = require('../luaParser');
 
 class GameDataSync {
@@ -67,6 +68,55 @@ class GameDataSync {
     }
   }
 
+  /**
+   * Sync images cho một game
+   */
+  async syncGameImages(appId) {
+    try {
+      // Fetch high-quality images from SteamGridDB
+      const sgdbImages = await steamGridDB.getAllImagesBySteamId(appId);
+      
+      // Build images object
+      const images = {
+        // SteamGridDB images (if available)
+        cover: sgdbImages?.cover || null,
+        coverThumb: sgdbImages?.coverThumb || null,
+        hero: sgdbImages?.hero || null,
+        heroThumb: sgdbImages?.heroThumb || null,
+        logo: sgdbImages?.logo || null,
+        logoThumb: sgdbImages?.logoThumb || null,
+        icon: sgdbImages?.icon || null,
+        iconThumb: sgdbImages?.iconThumb || null,
+        
+        // Steam CDN fallbacks
+        steamHeader: `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/header.jpg`,
+        steamLibrary: `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/library_hero.jpg`,
+        steamBackground: `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/page_bg_generated_v6b.jpg`,
+        screenshots: this.getSteamScreenshots(appId, 6)
+      };
+      
+      return images;
+    } catch (error) {
+      console.error(`Error syncing images for ${appId}:`, error.message);
+      
+      // Return fallback images
+      return {
+        steamHeader: `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/header.jpg`,
+        steamLibrary: `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/library_hero.jpg`,
+        steamBackground: `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/page_bg_generated_v6b.jpg`,
+        screenshots: this.getSteamScreenshots(appId, 6)
+      };
+    }
+  }
+
+  getSteamScreenshots(appId, count = 6) {
+    const screenshots = [];
+    for (let i = 0; i < count; i++) {
+      screenshots.push(`https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/ss_${i}.jpg`);
+    }
+    return screenshots;
+  }
+
   async processQueue(appIds) {
     // Process in batches to respect rate limits
     // Single request per batch with delay to be safe
@@ -122,6 +172,9 @@ class GameDataSync {
         return;
       }
 
+      // Fetch high-quality images
+      const images = await this.syncGameImages(appId);
+
       // Map to our Schema
       const gameData = {
         appId: details.steamAppId,
@@ -133,6 +186,7 @@ class GameDataSync {
         headerImage: details.cover,
         capsuleImage: details.capsuleImage,
         backgroundImage: details.backgroundImage,
+        images,
         developers: details.developer ? details.developer.split(', ') : [],
         publishers: details.publisher ? details.publisher.split(', ') : [],
         genres: details.genres ? details.genres.split(', ') : [],

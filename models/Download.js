@@ -63,9 +63,6 @@ const DownloadSchema = new mongoose.Schema({
   downloadPath: {
     type: String
   },
-  destination: {
-    type: String
-  },
   // Multi-threading
   totalChunks: {
     type: Number,

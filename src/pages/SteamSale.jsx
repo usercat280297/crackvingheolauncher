@@ -7,6 +7,10 @@ export default function SteamSale() {
 
   useEffect(() => {
     fetchSteamSales();
+    
+    // Auto-refresh every 5 minutes
+    const interval = setInterval(fetchSteamSales, 5 * 60 * 1000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchSteamSales = async () => {
@@ -24,7 +28,7 @@ export default function SteamSale() {
   return (
     <div className="min-h-screen p-8">
       <div className="mb-8">
-        <Link to="/" className="text-blue-400 hover:text-blue-300 flex items-center gap-2 mb-4">
+        <Link to="/home" className="text-blue-400 hover:text-blue-300 flex items-center gap-2 mb-4">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
           Back to Store
         </Link>

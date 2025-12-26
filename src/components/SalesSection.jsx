@@ -16,7 +16,29 @@ export default function SalesSection() {
   const fetchSalesData = async () => {
     try {
       setLoading(true);
-      // Always use mock data since API is not working
+      
+      // Fetch Epic Games free games
+      const epicResponse = await fetch('http://localhost:3000/api/sales/epic/free');
+      const epicData = await epicResponse.json();
+      
+      // Fetch Steam featured games
+      const steamResponse = await fetch('http://localhost:3000/api/sales/steam/featured');
+      const steamData = await steamResponse.json();
+      
+      setSalesData({
+        epic: {
+          free: epicData.success ? epicData.data : [],
+          sales: []
+        },
+        steam: {
+          featured: steamData.success ? steamData.data : [],
+          specials: steamData.success ? steamData.data.slice(3) : []
+        }
+      });
+    } catch (err) {
+      setError('Network error');
+      console.error('Sales fetch error:', err);
+      // Fallback to mock data if API fails
       setSalesData({
         epic: {
           free: [
@@ -25,36 +47,6 @@ export default function SalesSection() {
               title: 'Control',
               keyImages: [{ url: 'https://cdn1.epicgames.com/salesEvent/salesEvent/EGS_Control_RemedyEntertainment_S1_2560x1440-c7c10b0ac2d6fc1e3b5e5a8e8e8e8e8e' }],
               seller: { name: 'Remedy Entertainment' }
-            },
-            {
-              id: 'epic_free_2', 
-              title: 'Fallout 3: Game of the Year Edition',
-              keyImages: [{ url: 'https://cdn1.epicgames.com/offer/ac2c3883be2542b98a0268d9d80d50f2/EGS_Fallout3GameoftheYearEdition_BethesdaGameStudios_S1_2560x1440-c7c10b0ac2d6fc1e3b5e5a8e8e8e8e8e' }],
-              seller: { name: 'Bethesda Game Studios' }
-            },
-            {
-              id: 'epic_free_3',
-              title: 'Metro: Last Light Redux',
-              keyImages: [{ url: 'https://cdn1.epicgames.com/offer/424c217bce8c4cd2a1fcaab9aca2972f/EGS_MetroLastLightRedux_4AGames_S1_2560x1440-c7c10b0ac2d6fc1e3b5e5a8e8e8e8e8e' }],
-              seller: { name: '4A Games' }
-            },
-            {
-              id: 'epic_free_4',
-              title: 'Borderlands 3',
-              keyImages: [{ url: 'https://cdn1.epicgames.com/offer/9773aa1aa54f4f7b80e44bef04986cea/EGS_Borderlands3_GearboxSoftware_S1_2560x1440-c7c10b0ac2d6fc1e3b5e5a8e8e8e8e8e' }],
-              seller: { name: 'Gearbox Software' }
-            },
-            {
-              id: 'epic_free_5',
-              title: 'Assassins Creed Valhalla',
-              keyImages: [{ url: 'https://cdn1.epicgames.com/offer/9bcf5a4dc1d54cb6ab1a42f3a70c5cf4/EGS_AssassinsCreedValhalla_Ubisoft_S1_2560x1440-c7c10b0ac2d6fc1e3b5e5a8e8e8e8e8e' }],
-              seller: { name: 'Ubisoft' }
-            },
-            {
-              id: 'epic_free_6',
-              title: 'Grand Theft Auto V',
-              keyImages: [{ url: 'https://cdn1.epicgames.com/0584d2013f0149a791e7b9bad0eec102/offer/GTAV_EGS_Artwork_1200x1600_Portrait%20Store%20Banner-1200x1600-382243057711adf80322ed2aeea42191.jpg' }],
-              seller: { name: 'Rockstar Games' }
             }
           ],
           sales: []
@@ -70,95 +62,11 @@ export default function SalesSection() {
               original_price: 5999,
               final_price: 2999,
               currency: 'USD'
-            },
-            {
-              id: 'steam_2',
-              name: 'The Witcher 3: Wild Hunt',
-              header_image: 'https://cdn.akamai.steamstatic.com/steam/apps/292030/header.jpg',
-              discounted: true,
-              discount_percent: 70,
-              original_price: 3999,
-              final_price: 1199,
-              currency: 'USD'
-            },
-            {
-              id: 'steam_3',
-              name: 'Red Dead Redemption 2',
-              header_image: 'https://cdn.akamai.steamstatic.com/steam/apps/1174180/header.jpg',
-              discounted: true,
-              discount_percent: 60,
-              original_price: 5999,
-              final_price: 2399,
-              currency: 'USD'
-            },
-            {
-              id: 'steam_4',
-              name: 'Elden Ring',
-              header_image: 'https://cdn.akamai.steamstatic.com/steam/apps/1245620/header.jpg',
-              discounted: true,
-              discount_percent: 30,
-              original_price: 5999,
-              final_price: 4199,
-              currency: 'USD'
-            },
-            {
-              id: 'steam_5',
-              name: 'God of War',
-              header_image: 'https://cdn.akamai.steamstatic.com/steam/apps/1593500/header.jpg',
-              discounted: true,
-              discount_percent: 50,
-              original_price: 4999,
-              final_price: 2499,
-              currency: 'USD'
-            },
-            {
-              id: 'steam_6',
-              name: 'Horizon Zero Dawn',
-              header_image: 'https://cdn.akamai.steamstatic.com/steam/apps/1151640/header.jpg',
-              discounted: true,
-              discount_percent: 60,
-              original_price: 4999,
-              final_price: 1999,
-              currency: 'USD'
             }
           ],
-          specials: [
-            {
-              id: 'steam_special_1',
-              name: 'Baldurs Gate 3',
-              header_image: 'https://cdn.akamai.steamstatic.com/steam/apps/1086940/header.jpg',
-              discounted: true,
-              discount_percent: 20,
-              original_price: 5999,
-              final_price: 4799,
-              currency: 'USD'
-            },
-            {
-              id: 'steam_special_2',
-              name: 'Starfield',
-              header_image: 'https://cdn.akamai.steamstatic.com/steam/apps/1716740/header.jpg',
-              discounted: true,
-              discount_percent: 25,
-              original_price: 6999,
-              final_price: 5249,
-              currency: 'USD'
-            },
-            {
-              id: 'steam_special_3',
-              name: 'Spider-Man Remastered',
-              header_image: 'https://cdn.akamai.steamstatic.com/steam/apps/1817070/header.jpg',
-              discounted: true,
-              discount_percent: 40,
-              original_price: 5999,
-              final_price: 3599,
-              currency: 'USD'
-            }
-          ]
+          specials: []
         }
       });
-    } catch (err) {
-      setError('Network error');
-      console.error('Sales fetch error:', err);
     } finally {
       setLoading(false);
     }

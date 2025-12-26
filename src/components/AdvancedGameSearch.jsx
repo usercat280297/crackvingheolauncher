@@ -215,11 +215,11 @@ const AdvancedGameSearch = () => {
                     {/* Image Thumbnail */}
                     <div className="relative h-40 bg-gradient-to-br from-blue-500 to-purple-500 overflow-hidden">
                       <img 
-                        src={`https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appId}/header.jpg`}
+                        src={`https://cdn2.steamgriddb.com/steam/${game.appId}/600x900.png`}
                         alt={game.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                         onError={(e) => {
-                          e.target.style.display = 'none';
+                          e.target.src = `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appId}/header.jpg`;
                         }}
                       />
                       <div className="absolute top-2 right-2 bg-black/60 backdrop-blur px-2 py-1 rounded-lg">
@@ -232,8 +232,10 @@ const AdvancedGameSearch = () => {
 
                     {/* Content */}
                     <div className="p-4">
-                      <h3 className="text-white font-semibold text-lg mb-1 line-clamp-2">
-                        {game.name}
+                      <h3 className="text-lg mb-1 line-clamp-2">
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 font-semibold">
+                          {game.name}
+                        </span>
                       </h3>
                       <p className="text-gray-400 text-xs mb-3">
                         App ID: {game.appId}

@@ -1,6 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import Snowfall from './components/Snowfall'
 import Tutorial from './components/Tutorial'
 import WelcomeScreen from './components/WelcomeScreen'
 import { ToastDisplay } from './components/ToastDisplay'
@@ -114,9 +113,6 @@ export default function App() {
       {/* Global Toast Display */}
       <ToastDisplay />
       
-      {/* Global Snowfall */}
-      <Snowfall />
-      
       {/* Tutorial for first-time users */}
       <Tutorial />
       
@@ -141,12 +137,27 @@ export default function App() {
 
       <div className="flex flex-1 overflow-hidden relative">
       {/* Hide main sidebar on pages with their own layout */}
-      {!location.pathname.includes('/tags') && !location.pathname.includes('/epic-sale') && !location.pathname.includes('/steam-sale') && !location.pathname.includes('/game/') && !location.pathname.includes('/settings') && (
+      {!location.pathname.includes('/lockscreen') && location.pathname !== '/' && !location.pathname.includes('/tags') && !location.pathname.includes('/epic-sale') && !location.pathname.includes('/steam-sale') && !location.pathname.includes('/game/') && !location.pathname.includes('/settings') && (
         <aside className={`bg-black border-r border-gray-900 flex flex-col transition-all duration-500 ease-in-out ${sidebarCollapsed ? 'w-0' : 'w-52'}`} style={{ overflow: 'hidden' }}>
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto min-w-[208px] pt-24">
-          <Link to="/" data-tutorial="home" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition duration-300 transform hover:translate-x-1 ${location.pathname === '/' ? 'bg-gradient-to-r from-cyan-600/30 to-cyan-500/10 border border-cyan-500/30 text-cyan-300 shadow-lg shadow-cyan-500/10' : 'text-gray-400 hover:bg-gray-800/40 hover:text-white'}`}>
+          <Link to="/" onClick={() => localStorage.removeItem('launcherUnlocked')} className={`flex items-center gap-3 px-4 py-3 rounded-lg transition duration-300 transform hover:translate-x-1 ${location.pathname === '/' ? 'bg-gradient-to-r from-cyan-600/30 to-cyan-500/10 border border-cyan-500/30 text-cyan-300 shadow-lg shadow-cyan-500/10' : 'text-gray-400 hover:bg-gray-800/40 hover:text-white'}`}>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+            Màn hình chờ
+          </Link>
+          
+          <Link to="/home" data-tutorial="home" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition duration-300 transform hover:translate-x-1 ${location.pathname === '/home' ? 'bg-gradient-to-r from-cyan-600/30 to-cyan-500/10 border border-cyan-500/30 text-cyan-300 shadow-lg shadow-cyan-500/10' : 'text-gray-400 hover:bg-gray-800/40 hover:text-white'}`}>
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
             {t('home')}
+          </Link>
+          
+          <Link to="/bypass" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition duration-300 transform hover:translate-x-1 ${location.pathname === '/bypass' ? 'bg-gradient-to-r from-cyan-600/30 to-cyan-500/10 border border-cyan-500/30 text-cyan-300 shadow-lg shadow-cyan-500/10' : 'text-gray-400 hover:bg-gray-800/40 hover:text-white'}`}>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
+            Bypass
+          </Link>
+          
+          <Link to="/onlinefix" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition duration-300 transform hover:translate-x-1 ${location.pathname === '/onlinefix' ? 'bg-gradient-to-r from-cyan-600/30 to-cyan-500/10 border border-cyan-500/30 text-cyan-300 shadow-lg shadow-cyan-500/10' : 'text-gray-400 hover:bg-gray-800/40 hover:text-white'}`}>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
+            Online-Fix
           </Link>
           
           <Link to="/library" data-tutorial="library" className={`flex items-center gap-3 px-4 py-3 rounded-lg transition duration-300 transform hover:translate-x-1 ${location.pathname === '/library' ? 'bg-gradient-to-r from-cyan-600/30 to-cyan-500/10 border border-cyan-500/30 text-cyan-300 shadow-lg shadow-cyan-500/10' : 'text-gray-400 hover:bg-gray-800/40 hover:text-white'}`}>
@@ -185,28 +196,6 @@ export default function App() {
         </nav>
         
         <div className="p-3 border-t border-gray-900 min-w-[208px] space-y-2 bg-black">
-          {/* User Account Section */}
-          <div className="mb-2">
-            {localStorage.getItem('user') ? (
-              <Link 
-                to="/profile" 
-                className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-cyan-500/20 to-blue-500/10 border border-cyan-500/40 hover:from-cyan-500/30 hover:to-blue-500/20 rounded-lg transition shadow-lg shadow-cyan-500/5"
-              >
-                <img 
-                  src="/Saitma-Meme-PNG-758x473-removebg-preview.png" 
-                  alt="Avatar" 
-                  className="w-8 h-8 rounded-full object-contain bg-gray-800 p-1" 
-                />
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-white">
-                    {JSON.parse(localStorage.getItem('user')).name || 'User'}
-                  </div>
-                  <div className="text-xs text-cyan-400">{t('viewProfile')}</div>
-                </div>
-              </Link>
-            ) : null}
-          </div>
-          
           <Link 
             to="/settings" 
             onClick={() => localStorage.setItem('previousTab', location.pathname)}
@@ -220,7 +209,7 @@ export default function App() {
       )}
       
       {/* Hide toggle button on pages with their own sidebar */}
-      {!location.pathname.includes('/tags') && !location.pathname.includes('/game/') && !location.pathname.includes('/settings') && (
+      {!location.pathname.includes('/lockscreen') && location.pathname !== '/' && !location.pathname.includes('/tags') && !location.pathname.includes('/game/') && !location.pathname.includes('/settings') && (
         <div 
           className={`fixed left-0 top-16 w-8 h-32 z-[100] cursor-pointer transition-all duration-300 ${sidebarCollapsed ? 'hover:bg-cyan-600/20' : ''}`}
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}

@@ -1,0 +1,43 @@
+{
+  "id": 1364780,
+  "steamAppId": 1364780,
+  "title": "Street Fighter™ 6",
+  "description": "Here comes Capcom’s newest challenger! Street Fighter™ 6 launches worldwide on June 2nd, 2023 and represents the next evolution of the Street Fighter™ series! Street Fighter 6 spans three distinct game modes, including World Tour, Fighting Ground and Battle Hub.",
+  "thumbnail": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1364780/header.jpg?t=1761116384",
+  "screenshots": [
+    "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1364780/ss_387137f8cccb048c35a8685634372e97785d40aa.600x338.jpg?t=1761116384",
+    "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1364780/ss_a381f1b3b450c18900d47b991ce8e7456e9cdba5.600x338.jpg?t=1761116384",
+    "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1364780/ss_f62ce93269a6d8e0027853358af4d6368e2c4b93.600x338.jpg?t=1761116384",
+    "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1364780/ss_d186566a92ada8cdb08b04769a8c95cd1e380006.600x338.jpg?t=1761116384",
+    "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1364780/ss_ed46aaa9ed94dd6f35a703070f8df16cee5aef61.600x338.jpg?t=1761116384"
+  ],
+  "trailer": null,
+  "genres": [
+    "Action",
+    "Adventure"
+  ],
+  "tags": [],
+  "releaseDate": "Jun 1, 2023",
+  "developers": [
+    "CAPCOM Co., Ltd."
+  ],
+  "publishers": [
+    "CAPCOM Co., Ltd."
+  ],
+  "basePrice": 39.99,
+  "currentPrice": 19.99,
+  "discount": 50,
+  "isFree": false,
+  "metacritic": 92,
+  "platforms": {
+    "windows": true,
+    "mac": false,
+    "linux": false
+  },
+  "reviewScore": null,
+  "reviewType": null,
+  "positiveReviews": 0,
+  "negativeReviews": 0,
+  "required_age": 0,
+  "lastUpdated": 1766709373943
+}

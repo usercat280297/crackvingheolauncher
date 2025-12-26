@@ -4,7 +4,10 @@ import { useLanguage } from '../i18n/LanguageContext';
 import SteamNameService from '../services/steamNames';
 import { DownloadContext } from '../context/DownloadContext';
 import LastUpdated from '../components/LastUpdated';
+import FeaturedPopularGames from '../components/FeaturedPopularGames';
 import { openExternal } from '../utils/openExternal';
+import EnhancedCarousel from '../components/EnhancedCarousel';
+import DenuvoIndicator from '../components/DenuvoIndicator';
 
 export default function Store() {
   const { t } = useLanguage();
@@ -126,10 +129,26 @@ export default function Store() {
 
   const fetchRandomGames = async () => {
     try {
+      // Check cache first
+      const cacheKey = 'random_games_cache';
+      const cached = localStorage.getItem(cacheKey);
+      const cacheTime = localStorage.getItem(cacheKey + '_time');
+      const CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 hours
+
+      if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < CACHE_DURATION) {
+        setRandomGames(JSON.parse(cached));
+        return;
+      }
+
       const response = await fetch('http://localhost:3000/api/games?limit=12');
       const data = await response.json();
       const shuffled = data.games.sort(() => 0.5 - Math.random());
-      setRandomGames(shuffled.slice(0, 6));
+      const randomSlice = shuffled.slice(0, 6);
+      setRandomGames(randomSlice);
+      
+      // Save to cache
+      localStorage.setItem(cacheKey, JSON.stringify(randomSlice));
+      localStorage.setItem(cacheKey + '_time', Date.now().toString());
     } catch (error) {
       console.error('Error fetching random games:', error);
     }
@@ -137,9 +156,24 @@ export default function Store() {
 
   const fetchFeaturedGames = async () => {
     try {
+      // Check cache first
+      const cacheKey = 'featured_games_cache';
+      const cached = localStorage.getItem(cacheKey);
+      const cacheTime = localStorage.getItem(cacheKey + '_time');
+      const CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 hours
+
+      if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < CACHE_DURATION) {
+        setFeaturedGames(JSON.parse(cached));
+        return;
+      }
+
       const response = await fetch('http://localhost:3000/api/games/featured');
       const data = await response.json();
       setFeaturedGames(data);
+      
+      // Save to cache
+      localStorage.setItem(cacheKey, JSON.stringify(data));
+      localStorage.setItem(cacheKey + '_time', Date.now().toString());
     } catch (error) {
       console.error('Error fetching featured games:', error);
     }
@@ -147,11 +181,29 @@ export default function Store() {
 
   const fetchEpicSales = async () => {
     try {
+      // Check cache first
+      const cacheKey = 'epic_sales_cache';
+      const cached = localStorage.getItem(cacheKey);
+      const cacheTime = localStorage.getItem(cacheKey + '_time');
+      const CACHE_DURATION = 4 * 60 * 60 * 1000; // 4 hours
+
+      if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < CACHE_DURATION) {
+        const cachedData = JSON.parse(cached);
+        setEpicSales(cachedData.sales);
+        setEpicLastUpdated(cachedData.lastUpdated);
+        return;
+      }
+
       const response = await fetch('http://localhost:3000/api/sales/epic/free');
       const data = await response.json();
       if (data.success && data.data.length > 0) {
-        setEpicSales(data.data.slice(0, 6));
+        const sliced = data.data.slice(0, 6);
+        setEpicSales(sliced);
         setEpicLastUpdated(data.lastUpdated);
+        
+        // Save to cache
+        localStorage.setItem(cacheKey, JSON.stringify({ sales: sliced, lastUpdated: data.lastUpdated }));
+        localStorage.setItem(cacheKey + '_time', Date.now().toString());
       } else {
         // Fallback to mock data if API fails or no data
         setEpicSales([
@@ -173,11 +225,29 @@ export default function Store() {
 
   const fetchSteamSales = async () => {
     try {
+      // Check cache first
+      const cacheKey = 'steam_sales_cache';
+      const cached = localStorage.getItem(cacheKey);
+      const cacheTime = localStorage.getItem(cacheKey + '_time');
+      const CACHE_DURATION = 4 * 60 * 60 * 1000; // 4 hours
+
+      if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < CACHE_DURATION) {
+        const cachedData = JSON.parse(cached);
+        setSteamSales(cachedData.sales);
+        setSteamLastUpdated(cachedData.lastUpdated);
+        return;
+      }
+
       const response = await fetch('http://localhost:3000/api/sales/steam/featured');
       const data = await response.json();
       if (data.success && data.data.length > 0) {
-        setSteamSales(data.data.slice(0, 6));
+        const sliced = data.data.slice(0, 6);
+        setSteamSales(sliced);
         setSteamLastUpdated(data.lastUpdated);
+        
+        // Save to cache
+        localStorage.setItem(cacheKey, JSON.stringify({ sales: sliced, lastUpdated: data.lastUpdated }));
+        localStorage.setItem(cacheKey + '_time', Date.now().toString());
       } else {
         // Fallback to mock data if API fails or no data
         setSteamSales([
@@ -199,10 +269,25 @@ export default function Store() {
 
   const fetchTopSellers = async () => {
     try {
+      // Check cache first
+      const cacheKey = 'top_sellers_cache';
+      const cached = localStorage.getItem(cacheKey);
+      const cacheTime = localStorage.getItem(cacheKey + '_time');
+      const CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 hours
+
+      if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < CACHE_DURATION) {
+        setTopSellers(JSON.parse(cached));
+        return;
+      }
+
       const response = await fetch('http://localhost:3000/api/top-games/top-sellers?limit=5');
       const data = await response.json();
       if (data.success) {
         setTopSellers(data.data);
+        
+        // Save to cache
+        localStorage.setItem(cacheKey, JSON.stringify(data.data));
+        localStorage.setItem(cacheKey + '_time', Date.now().toString());
       }
     } catch (error) {
       console.error('Error fetching top sellers:', error);
@@ -409,6 +494,9 @@ export default function Store() {
 
   return (
     <div className="min-h-screen relative animate-fadeInSlow" style={{ paddingTop: '104px' }}>
+      {/* Featured Popular Games Section - Denuvo Badge & Trending */}
+      {!isSearchMode && <FeaturedPopularGames />}
+
       {/* Search Mode Overlay */}
       {isSearchMode && (
         <div className="fixed inset-0 bg-black/95 backdrop-blur-xl z-[150] overflow-y-auto transition-all duration-700 ease-out" onClick={handleOverlayClick}>
@@ -476,19 +564,40 @@ export default function Store() {
                     className="group relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-900 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/20"
                   >
                     <img 
-                      src={`http://localhost:3000/api/steam/image/${game.appId}/header`}
+                      src={`https://cdn2.steamgriddb.com/steam_grid/${game.appId}.png`}
                       alt={game.name}
                       className="w-full h-full object-cover transition-all duration-300 group-hover:brightness-110"
+                      loading="lazy"
                       onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/460x215/1f1f2e/888888?text=Game+Cover';
+                        if (e.target.src.includes('steamgriddb')) {
+                          e.target.src = `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appId}/library_600x900.jpg`;
+                        } else if (e.target.src.includes('library_600x900')) {
+                          e.target.src = `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appId}/header.jpg`;
+                        } else {
+                          e.target.style.display = 'none';
+                          e.target.parentElement.innerHTML = `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900"><span class="text-gray-500 text-sm text-center px-4">${game.name}</span></div>`;
+                        }
                       }}
                     />
+                    {/* Logo overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                      <img 
+                        src={`https://cdn2.steamgriddb.com/steam/${game.appId}/logo.png`}
+                        alt={`${game.name} logo`}
+                        className="max-w-[80%] max-h-[40%] object-contain drop-shadow-2xl"
+                        onError={(e) => e.target.style.display = 'none'}
+                      />
+                    </div>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium">
                       <span className={`${getMatchTypeColor(game.matchType)}`}>{game.score}%</span>
                     </div>
                     <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                      <h3 className="font-bold text-white text-lg mb-2 line-clamp-2">{game.name}</h3>
+                      <h3 className="font-bold text-lg mb-2 line-clamp-2">
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600">
+                          {game.name}
+                        </span>
+                      </h3>
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-gray-300">{getMatchTypeLabel(game.matchType)}</span>
                         <button 
@@ -520,62 +629,6 @@ export default function Store() {
               </div>
             )}
           </div>
-        </div>
-      )}
-
-      {/* Auto-Scroll Popular Games Carousel - TV Showroom Style */}
-      {!isSearchMode && games.length > 0 && (
-        <div className="px-6 md:px-8 py-8 max-w-7xl mx-auto">
-          <div className="relative h-96 overflow-hidden rounded-2xl mb-12">
-          {/* Auto-scrolling carousel */}
-          <div className="flex transition-transform duration-1000 ease-out" 
-            style={{ transform: `translateX(-${popularSlide * 100}%)` }}>
-            {games.slice(0, 7).map((game, idx) => (
-              <Link
-                key={game.id}
-                to={`/game/${game.id}`}
-                className="relative min-w-full h-96 flex-shrink-0 group cursor-pointer"
-              >
-                <img
-                  src={game.cover || `http://localhost:3000/api/steam/image/${game.id}/header`}
-                  alt={game.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  onError={(e) => e.target.src = 'https://via.placeholder.com/1600x400/1f1f2e/888888?text=Game+Cover'}
-                />
-                {/* Professional gradient overlay - bottom to top */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent group-hover:via-black/30 transition-all duration-300" />
-                
-                {/* Game info overlay - positioned at bottom */}
-                <div className="absolute bottom-0 left-0 right-0 p-12 pb-16">
-                  <h3 className="text-5xl font-bold text-white mb-3 drop-shadow-lg line-clamp-2">{game.title}</h3>
-                  <p className="text-gray-200 mb-6 line-clamp-2 max-w-3xl text-lg">{game.size}</p>
-                </div>
-                
-                {/* Slide indicator */}
-                {idx === popularSlide && (
-                  <div className="absolute top-6 right-6 bg-black/60 backdrop-blur-sm px-4 py-2 rounded-lg text-white font-bold text-sm">
-                    {idx + 1} / 7
-                  </div>
-                )}
-              </Link>
-            ))}
-          </div>
-
-          {/* Navigation dots */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-            {games.slice(0, 7).map((_, i) => (
-              <button
-                key={i}
-                onClick={(e) => { e.preventDefault(); setPopularSlide(i); }}
-                className={`transition-all duration-300 rounded-full ${
-                  i === popularSlide 
-                    ? 'w-10 h-2 bg-cyan-500 shadow-lg shadow-cyan-500/50' 
-                    : 'w-2 h-2 bg-gray-500 hover:bg-gray-400'
-                }`}
-              />
-            ))}
-          </div>
-        </div>
         </div>
       )}
 
@@ -663,43 +716,6 @@ export default function Store() {
           >
             <svg className="w-6 h-6 group-hover:scale-125 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
           </button>
-        </div>
-      )}
-
-      {/* Trending/Featured Games - Epic Games Style */}
-      {!isSearchMode && games.length > 0 && (
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold text-white mb-8 px-6 md:px-8">⚡ Trending Now</h2>
-          <div className="px-6 md:px-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {games.slice(0, 12).map((game) => (
-              <Link 
-                key={game.id} 
-                to={`/game/${game.id}`}
-                className="group relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-900 transition-all duration-300 hover:scale-110 hover:shadow-2xl hover:shadow-cyan-500/40 hover:z-20"
-              >
-                <img 
-                  src={game.cover || `http://localhost:3000/api/steam/image/${game.id}/header`}
-                  alt={game.title}
-                  className="w-full h-full object-cover transition-all duration-300 group-hover:brightness-130"
-                  onError={(e) => e.target.src = 'https://via.placeholder.com/300x400/1f1f2e/888888?text=Game'}
-                />
-                {/* Epic-style overlay gradient */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                
-                {/* Rating badge */}
-                {game.rating && (
-                  <div className="absolute top-3 right-3 bg-yellow-500/90 px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    ⭐ {game.rating}
-                  </div>
-                )}
-                
-                {/* Game title on hover - bottom positioned */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 group-hover:translate-y-0 transition-all duration-300 opacity-0 group-hover:opacity-100">
-                  <h3 className="font-bold text-white text-sm line-clamp-2">{game.title}</h3>
-                </div>
-              </Link>
-            ))}
-          </div>
         </div>
       )}
 
@@ -1026,35 +1042,6 @@ export default function Store() {
         </div>
         )}
 
-        {/* On Sale Section */}
-        {!loading && games.length > 0 && (
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-6">
-            <h2 className="text-2xl font-bold">🔥 On Sale</h2>
-            <span className="px-3 py-1 bg-red-600 rounded-full text-sm font-bold">Limited Time</span>
-          </div>
-          <div className="flex gap-4 overflow-x-auto pb-4">
-            {games.filter(g => g.onSale).slice(0, 8).map(game => (
-              <Link key={game.id} to={`/game/${game.id}`} className="flex-shrink-0 w-48 group">
-                <div className="relative aspect-[3/4] rounded-lg overflow-hidden mb-2">
-                  <img src={game.cover} alt={game.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                  <div className="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 rounded text-xs font-bold">
-                    -{game.discount}%
-                  </div>
-                </div>
-                <h3 className="font-semibold text-sm mb-1 group-hover:text-cyan-400 transition-colors">{game.title}</h3>
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-400 line-through text-xs">{game.originalPrice}</span>
-                  <span className="text-green-400 font-bold text-sm">{game.salePrice}</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-        )}
-
-
-
         {/* Browse by Tags */}
         {!loading && (
         <div className="mb-8">
@@ -1082,24 +1069,52 @@ export default function Store() {
             return (
               <div key={game.id} className="group relative">
                 {viewMode === 'grid' ? (
-                  <Link to={`/game/${game.id}`} className="block relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-900 transition-all duration-500 hover:scale-105 hover:z-10 hover:shadow-2xl hover:shadow-cyan-500/50">
+                  <Link to={`/game/${game.id}`} className="block relative rounded-xl overflow-hidden bg-gray-900 transition-all duration-500 hover:scale-105 hover:z-10 hover:shadow-2xl hover:shadow-cyan-500/50" style={{ aspectRatio: '2/3' }}>
                   <img 
-                    src={game.cover}
+                    src={`https://cdn2.steamgriddb.com/steam_grid/${game.id}.png`}
                     alt={displayTitle}
                     className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110 group-hover:brightness-110"
                     onError={(e) => {
-                      e.target.src = 'https://via.placeholder.com/460x215/1f1f2e/888888?text=Game+Cover';
+                      if (e.target.src.includes('steamgriddb')) {
+                        e.target.src = `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.id}/library_600x900.jpg`;
+                      } else if (e.target.src.includes('library_600x900')) {
+                        e.target.src = `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.id}/header.jpg`;
+                      } else {
+                        e.target.style.display = 'none';
+                        e.target.parentElement.innerHTML = `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900"><span class="text-gray-500 text-sm text-center px-4">${displayTitle}</span></div>`;
+                      }
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <div className="absolute inset-0 ring-0 group-hover:ring-2 ring-cyan-500/40 rounded-xl transition-all duration-500" />
+                  
+                  {/* Logo overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <img 
+                      src={`https://cdn2.steamgriddb.com/steam/${game.id}/logo.png`}
+                      alt={`${displayTitle} logo`}
+                      className="max-w-[70%] max-h-[30%] object-contain drop-shadow-2xl opacity-0 group-hover:opacity-90 transition-opacity duration-500"
+                      onError={(e) => e.target.style.display = 'none'}
+                    />
+                  </div>
+                  
                   {/* Title only shows on hover */}
                   <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-1 group-hover:translate-y-0 transition-all duration-300 opacity-0 group-hover:opacity-100">
-                    <h3 className="font-bold text-white text-sm line-clamp-2 mb-2">{displayTitle}</h3>
+                    <h3 className="font-bold text-sm line-clamp-2 mb-2">
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600">
+                        {displayTitle}
+                      </span>
+                    </h3>
                     <div className="flex items-center gap-2 text-xs">
+                      <DenuvoIndicator gameId={game.id} gameName={displayTitle} />
                       {game.rating && <span className="px-2 py-0.5 bg-yellow-500/80 text-white rounded font-bold">⭐ {game.rating}</span>}
                       <span className="text-gray-300">{game.size}</span>
                     </div>
+                  </div>
+                  
+                  {/* Denuvo Badge (top-right corner, always visible) */}
+                  <div className="absolute top-2 right-2 z-10">
+                    <DenuvoIndicator gameId={game.id} gameName={displayTitle} />
                   </div>
                 </Link>
               ) : (
@@ -1107,7 +1122,10 @@ export default function Store() {
                   <img src={game.cover} alt={displayTitle} className="w-32 h-44 object-cover rounded-lg transition-transform duration-500 hover:scale-105" />
                   <div className="flex-1 flex flex-col justify-between">
                     <div>
-                      <h3 className="text-xl font-bold mb-2 group-hover:text-cyan-400 transition-colors duration-300">{displayTitle}</h3>
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-xl font-bold group-hover:text-cyan-400 transition-colors duration-300">{displayTitle}</h3>
+                        <DenuvoIndicator gameId={game.id} gameName={displayTitle} />
+                      </div>
                       <p className="text-sm text-gray-400 mb-2">{game.developer}</p>
                       <p className="text-sm text-gray-500 line-clamp-2 mb-3">{game.description}</p>
                       <div className="flex items-center gap-3">

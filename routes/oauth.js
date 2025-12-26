@@ -59,7 +59,59 @@ if (hasGoogleCredentials) {
       
       // Redirect to custom protocol for Electron app
       const redirectUrl = `gamelauncher://oauth?token=${token}&user=${encodeURIComponent(JSON.stringify(userData))}`;
-      window.location.href = redirectUrl;
+      
+      res.send(`
+        <html>
+          <head>
+            <title>Authentication Successful</title>
+            <style>
+              body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                margin: 0;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              }
+              .container {
+                text-align: center;
+                background: white;
+                padding: 3rem;
+                border-radius: 1rem;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+              }
+              h1 { color: #667eea; margin-bottom: 1rem; }
+              p { color: #666; margin-bottom: 2rem; }
+              .spinner {
+                border: 4px solid #f3f3f3;
+                border-top: 4px solid #667eea;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                animation: spin 1s linear infinite;
+                margin: 0 auto;
+              }
+              @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>✅ Authentication Successful!</h1>
+              <p>Redirecting you back to the launcher...</p>
+              <div class="spinner"></div>
+            </div>
+            <script>
+              setTimeout(() => {
+                window.location.href = '${redirectUrl}';
+              }, 1500);
+            </script>
+          </body>
+        </html>
+      `);
     }
   );
 } else {

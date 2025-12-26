@@ -17,6 +17,7 @@
 
 ## 🔧 Cách hoạt động:
 
+
 ```
 1. User click "Sign in with Google" trong launcher
    ↓
