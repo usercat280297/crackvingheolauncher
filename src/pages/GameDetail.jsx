@@ -46,6 +46,8 @@ export default function GameDetail() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [hasDenuvo, setHasDenuvo] = useState(null);
   const [denuvoLoading, setDenuvoLoading] = useState(false);
+  const [torrentPath, setTorrentPath] = useState(null);
+  const [torrentLoading, setTorrentLoading] = useState(false);
 
   useEffect(() => {
     const fetchGameDetails = async () => {
@@ -140,6 +142,24 @@ export default function GameDetail() {
           };
           
           setGame(gameData);
+          
+          // Find torrent file by game name
+          setTorrentLoading(true);
+          try {
+            const torrentRes = await fetch(`http://localhost:3000/api/torrent-finder/find?gameName=${encodeURIComponent(steamData.name)}`);
+            if (torrentRes.ok) {
+              const torrentData = await torrentRes.json();
+              if (torrentData.success && torrentData.torrentPath) {
+                setTorrentPath(torrentData.torrentPath);
+                console.log(`✅ Found torrent file: ${torrentData.torrentPath}`);
+              }
+            }
+          } catch (err) {
+            console.warn('⚠️ Could not find torrent file:', err.message);
+          } finally {
+            setTorrentLoading(false);
+          }
+          
           setLoading(false);
           return;
         } else {
@@ -625,10 +645,8 @@ export default function GameDetail() {
             <div className="bg-black/60 backdrop-blur-xl px-4 py-2.5 rounded-full border border-white/10">
               <span className="text-gray-200">📅 {game.releaseDate}</span>
             </div>
-            {/* Denuvo Badge Component */}
-            {!denuvoLoading && hasDenuvo !== null && (
-              <DenuvoIndicator hasDenuvo={hasDenuvo} />
-            )}
+            {/* Denuvo Badge Component - Always show, component handles loading */}
+            <DenuvoIndicator gameId={game.id} gameName={game.title} />
           </div>
           
           {/* Action Buttons */}
@@ -722,17 +740,15 @@ export default function GameDetail() {
                         <p className="text-gray-300 leading-relaxed">{game.description}</p>
                       </div>
                       
-                      {/* Denuvo/DRM Info Section */}
-                      {!denuvoLoading && hasDenuvo !== null && (
+                      {/* Denuvo/DRM Info Section - Only show if game HAS Denuvo */}
+                      {!denuvoLoading && hasDenuvo === true && (
                         <div className="mb-8 bg-gradient-to-br from-red-900/10 to-pink-900/10 rounded-xl p-6 border border-red-500/30">
                           <h4 className="text-xl font-bold mb-4 text-red-400">🔐 DRM & Protection Info</h4>
                           <div className="flex items-center gap-4">
-                            <DenuvoIndicator hasDenuvo={hasDenuvo} />
-                            {hasDenuvo && (
-                              <p className="text-gray-300 text-sm">
-                                This game uses Denuvo anti-tamper technology. Please ensure compatibility before downloading.
-                              </p>
-                            )}
+                            <DenuvoIndicator hasDenuvo={true} />
+                            <p className="text-gray-300 text-sm">
+                              This game uses Denuvo anti-tamper technology. Please ensure compatibility before downloading.
+                            </p>
                           </div>
                         </div>
                       )}
@@ -1458,28 +1474,54 @@ export default function GameDetail() {
                       try {
                         setIsDownloading(true);
                         
-                        // Call torrent download API
+                        // Find torrent file if not already found
+                        let finalTorrentPath = torrentPath;
+                        if (!finalTorrentPath) {
+                          try {
+                            const findRes = await fetch(`http://localhost:3000/api/torrent-finder/find?gameName=${encodeURIComponent(game.title)}`);
+                            if (findRes.ok) {
+                              const findData = await findRes.json();
+                              if (findData.success && findData.torrentPath) {
+                                finalTorrentPath = findData.torrentPath;
+                                setTorrentPath(finalTorrentPath);
+                              }
+                            }
+                          } catch (err) {
+                            console.error('Error finding torrent:', err);
+                          }
+                        }
+                        
+                        if (!finalTorrentPath) {
+                          alert('Torrent file not found for this game. Please make sure the torrent file exists in the torrent file game folder.');
+                          setIsDownloading(false);
+                          return;
+                        }
+                        
+                        // Call new download API (WebTorrent-based)
                         const response = await fetch('http://localhost:3000/api/torrent/download', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({
-                            gameId: game.id,
+                            torrentPath: finalTorrentPath,
+                            gameId: game.id.toString(),
                             gameName: game.title,
-                            torrentPath: `C:\\Games\\Torrents_DB\\${game.id}.torrent`,
-                            installPath: installPath,
-                            autoUpdate: autoUpdate,
-                            createShortcut: createShortcut
+                            outputPath: installPath
                           })
                         });
 
                         if (response.ok) {
                           const data = await response.json();
-                          setDownloadId(data.downloadId);
-                          console.log('Download started with ID:', data.downloadId);
+                          if (data.success) {
+                            setDownloadId(data.downloadId || data.download?.id || game.id.toString());
+                            console.log('✅ Download started for:', game.title, 'Download ID:', data.downloadId);
+                            // Close dialog to show progress in popup (we'll create this)
+                            setShowDownloadDialog(false);
+                          } else {
+                            throw new Error(data.error || 'Failed to start download');
+                          }
                         } else {
-                          console.error('Download failed');
-                          setIsDownloading(false);
-                          alert('Failed to start download. Check console for details.');
+                          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                          throw new Error(errorData.error || 'Failed to start download');
                         }
                       } catch (err) {
                         console.error('Download error:', err);

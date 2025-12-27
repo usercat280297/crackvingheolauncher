@@ -52,6 +52,32 @@ export default function App() {
     // Installation manager resumes incomplete downloads
     window.installationManager = installationManager;
     
+    // Load settings from API and apply them
+    const loadSettings = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/settings');
+        if (response.ok) {
+          const data = await response.json();
+          const settings = data.data;
+          
+          // Apply settings
+          if (settings.theme === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+          
+          // Store settings in window for other components to access
+          window.appSettings = settings;
+          console.log('✅ Settings loaded:', settings);
+        }
+      } catch (error) {
+        console.warn('Could not load settings from API:', error);
+      }
+    };
+    
+    loadSettings();
+    
     // Listen to update events
     window.addEventListener('metadataUpdated', (e) => {
       console.log('🔄 Game metadata updated:', e.detail);
@@ -219,9 +245,11 @@ export default function App() {
         </div>
       )}
       
-      <main className="flex-1 overflow-y-auto transition-opacity duration-500" onScroll={handleScroll}>
-        <Outlet />
-      </main>
+      <div className="flex-1 flex gap-4 overflow-hidden p-4">
+        <main className="flex-1 overflow-y-auto transition-opacity duration-500" onScroll={handleScroll}>
+          <Outlet />
+        </main>
+      </div>
 
       {showScrollTop && (
         <button 

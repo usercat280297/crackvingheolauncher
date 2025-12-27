@@ -665,7 +665,10 @@ export default function Store() {
                   <div className={`max-w-4xl w-full transition-all duration-1000 ${index === currentSlide ? 'translate-x-0 opacity-100 delay-300' : '-translate-x-20 opacity-0'}`}>
                     <h2 className="text-5xl md:text-7xl font-bold mb-4 drop-shadow-lg">{game.title}</h2>
                     <div className="flex items-center gap-3 mb-4 flex-wrap">
-                      <span className="px-4 py-2 bg-yellow-500/30 text-yellow-300 rounded-lg font-bold backdrop-blur-sm border border-yellow-500/20">⭐ {game.rating}</span>
+                      <DenuvoIndicator gameId={game.id} gameName={game.title} />
+                      {game.rating && game.rating !== 0 && (
+                        <span className="px-4 py-2 bg-yellow-500/30 text-yellow-300 rounded-lg font-bold backdrop-blur-sm border border-yellow-500/20">⭐ {game.rating}</span>
+                      )}
                       <span className="px-4 py-2 bg-blue-500/30 text-blue-300 rounded-lg backdrop-blur-sm border border-blue-500/20 text-sm font-medium">{game.developer}</span>
                       <span className="px-4 py-2 bg-gray-700/50 text-gray-200 rounded-lg text-sm">{game.size}</span>
                     </div>

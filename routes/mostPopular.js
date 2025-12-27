@@ -84,7 +84,7 @@ const POPULAR_TAGS = [
  */
 router.get('/', async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 20;
+    const limit = parseInt(req.query.limit) || 150; // Tăng lên 150 game nổi tiếng
     const page = parseInt(req.query.page) || 1;
     const skip = (page - 1) * limit;
 
@@ -141,9 +141,11 @@ router.get('/', async (req, res) => {
       },
       {
         $sort: {
+          // Ưu tiên Denuvo và game nổi tiếng lên đầu
+          totalScore: -1,
           isDenuvo: -1,
-          'metacritic.score': -1,
           playcount: -1,
+          'metacritic.score': -1,
           releaseDate: -1
         }
       },

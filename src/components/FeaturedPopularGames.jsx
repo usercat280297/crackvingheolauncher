@@ -11,6 +11,7 @@ const fetchGameHeroImage = async (appId) => {
       return {
         name: data.name,
         heroImage: data.images?.hero || data.images?.headerImage || `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/header.jpg`,
+        logo: data.images?.logo || null,
         description: data.shortDescription || data.description
       };
     }
@@ -20,6 +21,7 @@ const fetchGameHeroImage = async (appId) => {
   return {
     name: 'Game',
     heroImage: `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/header.jpg`,
+    logo: null,
     description: ''
   };
 };
@@ -130,8 +132,8 @@ export default function FeaturedPopularGames() {
           }
         }
         
-        // Fetch popular games with Denuvo badge
-        const response = await fetch('http://localhost:3000/api/most-popular?limit=10', {
+        // Fetch popular games with Denuvo badge - Get more games for carousel
+        const response = await fetch('http://localhost:3000/api/most-popular?limit=100', {
           headers: { 'Content-Type': 'application/json' }
         });
 
@@ -338,11 +340,13 @@ export default function FeaturedPopularGames() {
         }
 
         .slide-title {
-          font-size: 38px;
-          font-weight: bold;
+          font-size: 52px;
+          font-weight: 900;
           margin-bottom: 14px;
           text-shadow: 3px 3px 12px rgba(0, 0, 0, 0.9);
           line-height: 1.2;
+          color: white;
+          letter-spacing: -1px;
         }
 
         .slide-badges {
@@ -620,17 +624,26 @@ export default function FeaturedPopularGames() {
 
               {/* Info */}
               <div className="slide-info">
-                <h2 className="slide-title">{gameName}</h2>
+                {/* Logo or Title - like GameDetail */}
+                {heroData.logo ? (
+                  <img 
+                    src={heroData.logo}
+                    alt={gameName}
+                    className="h-24 w-auto object-contain mb-4 drop-shadow-2xl max-w-sm"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      if (e.target.nextElementSibling) {
+                        e.target.nextElementSibling.style.display = 'block';
+                      }
+                    }}
+                  />
+                ) : null}
+                <h2 className={`slide-title ${heroData.logo ? 'hidden' : 'block'}`}>{gameName}</h2>
 
                 {/* Badges */}
                 <div className="slide-badges">
-                  {/* Denuvo Badge using API-fetched accurate status */}
-                  {denuvoStatuses[appId] === true && (
-                    <DenuvoIndicator hasDenuvo={true} />
-                  )}
-                  {denuvoStatuses[appId] === false && (
-                    <DenuvoIndicator hasDenuvo={false} />
-                  )}
+                  {/* Denuvo Badge using API-fetched accurate status - Always show */}
+                  <DenuvoIndicator gameId={appId} gameName={gameName} />
                   
                   {/* Other badges */}
                   {game.badge && game.badge !== '⚡ Denuvo' && game.badge !== '🚫 Denuvo Protected' && (
@@ -654,31 +667,7 @@ export default function FeaturedPopularGames() {
                   </p>
                 )}
 
-                {/* Stats - Only show if at least one stat has valid data */}
-                {(game.playcount > 0 || (game.metacritic?.score && game.metacritic.score > 0) || (game.priceUSD && game.priceUSD > 0)) && (
-                  <div className="slide-stats">
-                    {game.playcount && game.playcount > 0 && (
-                      <div className="stat">
-                        <span className="stat-label">Người chơi</span>
-                        <span className="stat-value">
-                          {(game.playcount / 1000).toFixed(0)}K+
-                        </span>
-                      </div>
-                    )}
-                    {game.metacritic?.score && game.metacritic.score > 0 && (
-                      <div className="stat">
-                        <span className="stat-label">Điểm Metacritic</span>
-                        <span className="stat-value">{game.metacritic.score}</span>
-                      </div>
-                    )}
-                    {game.priceUSD && game.priceUSD > 0 && (
-                      <div className="stat">
-                        <span className="stat-label">Giá</span>
-                        <span className="stat-value">${game.priceUSD}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
+                {/* Stats section removed - no valid data to display */}
               </div>
             </div>
           </Link>

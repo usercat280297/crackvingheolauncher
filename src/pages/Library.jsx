@@ -1,149 +1,225 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import PageHeader from '../components/PageHeader';
+import GameCard from '../components/GameCard';
+import { Search, Grid3x3, List, RefreshCw } from 'lucide-react';
 
 export default function Library() {
-  const [installedGames, setInstalledGames] = useState([]);
+  const [games, setGames] = useState([]);
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState('grid');
+  const [isLoading, setIsLoading] = useState(true);
+  const [sortBy, setSortBy] = useState('name');
 
   useEffect(() => {
-    fetchGames();
+    fetchLibrary();
   }, []);
 
-  const fetchGames = async () => {
+  const fetchLibrary = async () => {
+    setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/games');
+      const response = await fetch('http://localhost:3000/api/library');
       const data = await response.json();
-      setInstalledGames(data.games || []);
+      if (data.success) {
+        setGames(data.data || []);
+      }
     } catch (error) {
-      console.error('Error fetching games:', error);
+      console.error('Error fetching library:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const filteredGames = installedGames.filter(g => 
-    g.title.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredGames = games
+    .filter(g => g.name.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'date':
+          return new Date(b.installDate) - new Date(a.installDate);
+        case 'size':
+          return b.size - a.size;
+        case 'playtime':
+          return (b.totalPlayTime || 0) - (a.totalPlayTime || 0);
+        default:
+          return 0;
+      }
+    });
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-b from-gray-900 to-black" style={{ paddingTop: '104px' }}>
-      <PageHeader title="Library">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search library..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-80 bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-2 pl-10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500"
-            />
-            <svg className="w-5 h-5 absolute left-3 top-2.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-          </div>
-          <button
-            onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-            className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {viewMode === 'grid' ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
-              )}
-            </svg>
-          </button>
-        </div>
-      </PageHeader>
-      
+    <div className="h-screen flex flex-col bg-gradient-to-b from-gray-950 via-gray-900 to-black">
       {/* Header */}
-      <div className="px-8 pt-6 pb-4">
-        <h1 className="text-4xl font-bold">My Library</h1>
+      <div className="bg-gradient-to-b from-gray-900/80 to-transparent border-b border-gray-800/50 sticky top-0 z-20 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-8 py-8">
+          <h1 className="text-4xl font-bold mb-6 text-white">My Library</h1>
+
+          {/* Controls */}
+          <div className="flex items-center gap-4 flex-wrap">
+            {/* Search */}
+            <div className="relative flex-1 min-w-64">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+              <input
+                type="text"
+                placeholder="Search library..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-2 pl-10 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors"
+              />
+            </div>
+
+            {/* Sort */}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500 transition-colors"
+            >
+              <option value="name">Sort by Name</option>
+              <option value="date">Sort by Date</option>
+              <option value="size">Sort by Size</option>
+              <option value="playtime">Sort by Playtime</option>
+            </select>
+
+            {/* View Mode */}
+            <div className="flex gap-2 bg-gray-800/50 border border-gray-700 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-2 rounded transition-colors ${
+                  viewMode === 'grid'
+                    ? 'bg-purple-600 text-white'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                <Grid3x3 className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-2 rounded transition-colors ${
+                  viewMode === 'list'
+                    ? 'bg-purple-600 text-white'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                <List className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Refresh */}
+            <button
+              onClick={fetchLibrary}
+              className="p-2 bg-gray-800/50 border border-gray-700 rounded-lg text-gray-400 hover:text-white hover:border-purple-500 transition-colors"
+              title="Refresh library"
+            >
+              <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Games Grid */}
-      <div className="flex-1 overflow-y-auto px-8 pb-8">
-        {filteredGames.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-gray-500">
-            <svg className="w-24 h-24 mb-4 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-            <p className="text-xl mb-2">No games installed yet</p>
-            <p className="text-gray-600">Download games from the Store to see them here</p>
-          </div>
-        ) : viewMode === 'grid' ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
-            {filteredGames.map(game => (
-              <Link
-                key={game.id}
-                to={`/game/${game.id}`}
-                className="group relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-900 shadow-lg hover:shadow-2xl hover:shadow-cyan-500/20 transition-all duration-300 hover:scale-105"
-              >
-                <img
-                  src={game.cover}
-                  alt={game.title}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                  onError={(e) => {
-                    // Fallback nếu ảnh lỗi
-                    e.target.src = game.hero || 
-                      `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.id}/header.jpg`;
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-7xl mx-auto px-8 py-8">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-96">
+              <div className="w-12 h-12 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin"></div>
+            </div>
+          ) : filteredGames.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-96 text-gray-500">
+              <div className="w-24 h-24 rounded-full bg-gray-800/50 flex items-center justify-center mb-4">
+                <svg className="w-12 h-12 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16m10-16v16M4 7h16m0 10H4" />
+                </svg>
+              </div>
+              <p className="text-xl font-semibold mb-2">No games found</p>
+              <p className="text-gray-600">{games.length === 0 ? 'Your library is empty' : 'No results for your search'}</p>
+            </div>
+          ) : viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {filteredGames.map(game => (
+                <GameCard
+                  key={game.id}
+                  game={game}
+                  onLaunch={() => {
+                    // Handle launch
+                  }}
+                  onUninstall={() => {
+                    setGames(games.filter(g => g.id !== game.id));
+                  }}
+                  onProperties={() => {
+                    // Handle properties
                   }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <h3 className="font-bold text-white mb-1">{game.title}</h3>
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded">⭐ {game.rating}</span>
-                      <span className="text-gray-300">{game.size}</span>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredGames.map(game => (
+                <div
+                  key={game.id}
+                  className="flex gap-4 p-4 bg-gray-800/20 hover:bg-gray-800/40 border border-gray-800 rounded-lg transition-all duration-300 group"
+                >
+                  <img
+                    src={game.cover}
+                    alt={game.name}
+                    className="w-20 h-28 object-cover rounded-lg"
+                    onError={(e) => {
+                      e.target.src = 'https://via.placeholder.com/300x400?text=No+Cover';
+                    }}
+                  />
+                  <div className="flex-1 flex flex-col justify-between py-2">
+                    <div>
+                      <h3 className="text-lg font-bold text-white group-hover:text-purple-400 transition">
+                        {game.name}
+                      </h3>
+                      <div className="flex items-center gap-4 mt-2 text-sm text-gray-400">
+                        <span>📦 {game.sizeFormatted}</span>
+                        <span>⏱️ {game.totalPlayTime || 0} hours</span>
+                        <span>📅 {new Date(game.installDate).toLocaleDateString()}</span>
+                      </div>
                     </div>
-                    <button className="mt-3 w-full py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg font-semibold text-sm transition">
-                      PLAY
+                  </div>
+                  <div className="flex gap-2 items-center">
+                    <button
+                      onClick={() => {
+                        // Launch game
+                        fetch(`http://localhost:3000/api/library/${game.id}/launch`, {
+                          method: 'POST'
+                        });
+                      }}
+                      className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
+                    >
+                      Launch
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (window.confirm(`Uninstall "${game.name}"?`)) {
+                          fetch(`http://localhost:3000/api/library/${game.id}`, {
+                            method: 'DELETE'
+                          }).then(() => {
+                            setGames(games.filter(g => g.id !== game.id));
+                          });
+                        }
+                      }}
+                      className="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg transition-colors"
+                    >
+                      Uninstall
                     </button>
                   </div>
                 </div>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {filteredGames.map(game => (
-              <Link
-                key={game.id}
-                to={`/game/${game.id}`}
-                className="flex gap-4 p-4 bg-gray-800/30 hover:bg-gray-800/50 rounded-xl transition-all duration-300 group"
-              >
-                <img
-                  src={game.cover}
-                  alt={game.title}
-                  className="w-24 h-32 object-cover rounded-lg"
-                  loading="lazy"
-                  onError={(e) => {
-                    // Fallback nếu ảnh lỗi
-                    e.target.src = game.hero || 
-                      `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.id}/header.jpg`;
-                  }}
-                />
-                <div className="flex-1 flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-xl font-bold mb-1 group-hover:text-cyan-400 transition">{game.title}</h3>
-                    <p className="text-sm text-gray-400 mb-2">{game.developer}</p>
-                    <div className="flex items-center gap-3">
-                      <span className="px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded text-sm font-bold">⭐ {game.rating}</span>
-                      <span className="text-sm text-gray-400">{game.genres}</span>
-                      <span className="text-sm text-gray-500">{game.size}</span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="px-6 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg font-semibold text-sm transition">
-                      PLAY
-                    </button>
-                    <button className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" /></svg>
-                    </button>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Stats Footer */}
+      {games.length > 0 && (
+        <div className="bg-gray-900/50 border-t border-gray-800 px-8 py-4">
+          <div className="max-w-7xl mx-auto flex gap-8 text-sm text-gray-400">
+            <div>📚 {games.length} games</div>
+            <div>💾 {(games.reduce((sum, g) => sum + g.size, 0) / (1024 * 1024 * 1024)).toFixed(1)} GB</div>
+            <div>⏱️ {games.reduce((sum, g) => sum + (g.totalPlayTime || 0), 0)} hours total</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

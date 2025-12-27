@@ -44,6 +44,7 @@ const gameImagesRouter = require('./routes/gameImages');
 const TorrentDownloadManager = require('./services/TorrentDownloadManager');
 const torrentDownloadRouter = require('./routes/torrentDownloadEnhanced');
 const torrentDBRouter = require('./routes/torrentDB');
+const torrentFinderRouter = require('./routes/torrentFinder');
 const oauthRouter = require('./routes/oauth');
 const playtimeRouter = require('./routes/playtime');
 const steamDownloadRouter = require('./routes/steamDownload');
@@ -129,7 +130,9 @@ app.use('/api/most-popular', mostPopularRouter);
 app.use('/api/popular-games', popularGamesRouter);
 app.use('/api/game-images', gameImagesRouter);
 app.use('/api/torrent', torrentDownloadRouter);
+app.use('/api/torrent', torrentFinderRouter);
 app.use('/api/torrent-db', torrentDBRouter);
+app.use('/api/torrent-finder', torrentFinderRouter);
 app.use('/api/playtime', playtimeRouter);
 app.use('/api/steam-download', steamDownloadRouter);
 app.use('/api/games/featured', featuredGamesRouter);
@@ -138,6 +141,14 @@ app.use('/api/steam-grid-db', steamGridDBRouter);
 
 // 🎯 Denuvo detection API
 app.use('/api/denuvo', denuvoRouter);
+
+// 🎛️ Settings Management API
+const settingsRouter = require('./routes/settings');
+app.use('/api/settings', settingsRouter);
+
+// 📥 Downloads Manager API
+const downloadsApiRouter = require('./routes/downloads-api');
+app.use('/api/downloads-api', downloadsApiRouter);
 
 // Legacy routes (kept for backwards compatibility)
 // app.use('/api/advanced-search', advancedSearchRouter); // Lua-based search
@@ -322,6 +333,16 @@ app.get('/api/health', async (req, res) => {
   });
 });
 
+// Popular Denuvo games list for sorting
+const POPULAR_DENUVO_GAMES_LIST = [
+  'Anno 1800', 'Assassin\'s Creed Mirage', 'Assassin\'s Creed Shadows', 
+  'Avatar: Frontiers of Pandora', 'EA Sports FC24', 'EA Sports FC25',
+  'EA Sports FC26', 'FINAL FANTASY VII REBIRTH', 'Hogwarts Legacy',
+  'Black Myth: Wukong', 'Dragon\'s Dogma 2', 'Street Fighter 6',
+  'Sonic Racing: Crossworlds', 'Star Wars Outlaws', 'Need for Speed Unbound',
+  'Cyberpunk 2077', 'Elden Ring', 'Red Dead Redemption 2', 'God of War'
+];
+
 // Get all games with pagination (MongoDB Version)
 app.get('/api/games', async (req, res) => {
   try {
@@ -343,8 +364,92 @@ app.get('/api/games', async (req, res) => {
     }
 
     const totalGames = await Game.countDocuments(query);
+    
+    // If no search, sort by popularity (Denuvo and popular games first)
+    let sortCriteria = {};
+    if (search) {
+      sortCriteria = { score: { $meta: "textScore" } };
+    } else {
+      // Use aggregation to sort by popularity
+      const gamesAggregate = await Game.aggregate([
+        { $match: query },
+        {
+          $addFields: {
+            isPopularDenuvo: {
+              $cond: [
+                {
+                  $regexMatch: {
+                    input: { $toLower: '$title' },
+                    regex: new RegExp(POPULAR_DENUVO_GAMES_LIST.join('|'), 'i')
+                  }
+                },
+                100,
+                0
+              ]
+            },
+            popularityScore: {
+              $add: [
+                { $cond: [{ $gte: ['$playcount', 500000] }, 50, 0] },
+                { $cond: [{ $gte: ['$metacritic.score', 85] }, 30, 0] },
+                { $cond: [{ $gte: ['$playcount', 100000] }, 20, 0] },
+                { $cond: [{ $gte: ['$metacritic.score', 70] }, 10, 0] }
+              ]
+            }
+          }
+        },
+        {
+          $sort: {
+            isPopularDenuvo: -1,
+            popularityScore: -1,
+            'metacritic.score': -1,
+            playcount: -1,
+            title: 1
+          }
+        },
+        { $skip: (page - 1) * limit },
+        { $limit: limit },
+        { $project: { __v: 0 } }
+      ]);
+      
+      // Transform games to include cover field
+      const transformedGames = gamesAggregate.map(game => ({
+        ...game,
+        id: game.appId || game._id,
+        cover: game.images?.cover || 
+               game.images?.steamHeader || 
+               game.headerImage ||
+               `http://localhost:3000/api/steam/image/${game.appId}/header`,
+        hero: game.images?.hero || 
+              game.images?.steamLibrary,
+        logo: game.images?.logo,
+        backgroundImage: game.images?.hero || 
+                         game.images?.steamBackground ||
+                         `https://cdn.akamai.steamstatic.com/steam/apps/${game.appId}/page_bg_generated_v6b.jpg`,
+        screenshots: game.images?.screenshots || [],
+        title: game.title || 'Unknown Game',
+        developer: game.developers?.[0] || 'Unknown',
+        rating: game.metacritic?.score || null,
+        size: '50 GB',
+        genres: Array.isArray(game.genres) ? game.genres.join(', ') : (game.genres || '')
+      }));
+      
+      console.log(`Serving page ${page}: ${transformedGames.length} games (${totalGames} total) - Sorted by popularity`);
+      
+      return res.json({
+        games: transformedGames,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(totalGames / limit),
+          totalGames: totalGames,
+          hasNext: page * limit < totalGames,
+          hasPrev: page > 1
+        }
+      });
+    }
+    
+    // Fallback to old method if search or other conditions
     const games = await Game.find(query)
-      .sort(search ? { score: { $meta: "textScore" } } : { title: 1 })
+      .sort(sortCriteria)
       .skip((page - 1) * limit)
       .limit(limit)
       .select('-__v')

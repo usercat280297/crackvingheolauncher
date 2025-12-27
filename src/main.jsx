@@ -11,6 +11,7 @@ import Store from './pages/Store'
 import Library from './pages/Library'
 import GameDetail from './pages/GameDetail'
 import Settings from './pages/Settings'
+import SettingsPage from './pages/SettingsPage'
 import Downloads from './pages/Downloads'
 import WineManager from './pages/WineManager'
 import Platforms from './pages/Platforms'
@@ -44,6 +45,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                   <Route path="library" element={<Library />} />
                   <Route path="downloads" element={<Downloads />} />
                   <Route path="wishlist" element={<Wishlist />} />
+                  <Route path="settings" element={<SettingsPage />} />
                   <Route path="wine" element={<WineManager />} />
                   <Route path="platforms" element={<Platforms />} />
                   <Route path="accessibility" element={<Accessibility />} />

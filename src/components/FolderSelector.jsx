@@ -3,24 +3,7 @@ import { openDirectoryDialog } from '../utils/ipcRenderer';
 
 export default function FolderSelector({ onPathSelected, defaultPath = 'C:\\Games\\Torrents' }) {
   const [currentPath, setCurrentPath] = useState(defaultPath);
-  const [drives, setDrives] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Get available drives on Windows
-  useEffect(() => {
-    const getAvailableDrives = async () => {
-      try {
-        // Simulated drives - in production, get from Electron IPC
-        const availableDrives = ['C:', 'D:', 'E:', 'F:'];
-        setDrives(availableDrives);
-      } catch (err) {
-        console.error('Error getting drives:', err);
-        setDrives(['C:', 'D:', 'E:']);
-      }
-    };
-
-    getAvailableDrives();
-  }, []);
 
   // Handle browse button - open folder selection dialog
   const handleBrowse = async () => {
@@ -41,13 +24,6 @@ export default function FolderSelector({ onPathSelected, defaultPath = 'C:\\Game
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Handle drive selection
-  const handleDriveSelect = (drive) => {
-    const newPath = `${drive}\\Games\\Torrents`;
-    setCurrentPath(newPath);
-    onPathSelected(newPath);
   };
 
   // Handle manual path input
@@ -80,35 +56,6 @@ export default function FolderSelector({ onPathSelected, defaultPath = 'C:\\Game
           margin-bottom: 15px;
           color: #fff;
           font-size: 16px;
-        }
-
-        .drive-selector {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 10px;
-          margin-bottom: 15px;
-        }
-
-        .drive-btn {
-          padding: 12px;
-          background: rgba(255, 255, 255, 0.08);
-          border: 2px solid rgba(255, 255, 255, 0.1);
-          border-radius: 6px;
-          color: #fff;
-          cursor: pointer;
-          font-weight: bold;
-          transition: all 0.2s;
-        }
-
-        .drive-btn:hover {
-          background: rgba(0, 188, 212, 0.2);
-          border-color: #00bcd4;
-        }
-
-        .drive-btn.active {
-          background: #00bcd4;
-          border-color: #00bcd4;
-          color: #000;
         }
 
         .path-input-group {
@@ -212,19 +159,6 @@ export default function FolderSelector({ onPathSelected, defaultPath = 'C:\\Game
       `}</style>
 
       <h3>📁 Chọn Thư Mục Tải</h3>
-
-      {/* Drive Quick Select */}
-      <div className="drive-selector">
-        {drives.map(drive => (
-          <button
-            key={drive}
-            className={`drive-btn ${currentPath.startsWith(drive) ? 'active' : ''}`}
-            onClick={() => handleDriveSelect(drive)}
-          >
-            {drive}
-          </button>
-        ))}
-      </div>
 
       {/* Path Input and Browse */}
       <div className="path-input-group">
