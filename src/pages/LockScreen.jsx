@@ -35,7 +35,8 @@ export default function LockScreen() {
         autoPlay 
         loop 
         muted 
-        className="absolute inset-0 w-full h-full object-cover blur-sm"
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
       >
         <source src="/kakashi-hatake-naruto.3840x2160.mp4" type="video/mp4" />
       </video>

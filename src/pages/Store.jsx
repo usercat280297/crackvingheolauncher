@@ -1,3 +1,9 @@
+
+
+// ============================================
+// COMPLETE STORE.jsx - FULL VERSION (FIXED)
+// ============================================
+
 import { useState, useEffect, useCallback, useRef, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -6,14 +12,132 @@ import { DownloadContext } from '../context/DownloadContext';
 import LastUpdated from '../components/LastUpdated';
 import FeaturedPopularGames from '../components/FeaturedPopularGames';
 import { openExternal } from '../utils/openExternal';
-import EnhancedCarousel from '../components/EnhancedCarousel';
 import DenuvoIndicator from '../components/DenuvoIndicator';
+
+// ============================================
+// DANH SÁCH GAME IDs CÓ DENUVO (Cập nhật 2024)
+// ============================================
+const DENUVO_GAMES_LIST = [
+  { id: 801800, name: "Atomfall" },
+  { id: 668580, name: "Atomic Heart" },
+  { id: 2358720, name: "Black Myth: Wukong" },
+  { id: 1285190, name: "Borderlands 4" },
+  { id: 1295660, name: "Civilization VII" },
+  { id: 1273400, name: "Construction Simulator" },
+  { id: 1693980, name: "Dead Space Remake" },
+  { id: 1490890, name: "Demon Slayer -Kimetsu no Yaiba- The Hinokami Chronicles" },
+  { id: 2928600, name: "Demon Slayer -Kimetsu no Yaiba- The Hinokami Chronicles 2" },
+  { id: 1984270, name: "Digimon Story Time Stranger" },
+  { id: 1038250, name: "Dirt 5" },
+  { id: 3017860, name: "DOOM: The Dark Ages" },
+  { id: 2893570, name: "Dragon Quest I & II HD-2D Remake" },
+  { id: 1570010, name: "FAR: Changing Tides" },
+  { id: 637650, name: "Final Fantasy XV" },
+  { id: 2515020, name: "Final Fantasy XVI" },
+  { id: 1004640, name: "FINAL FANTASY TACTICS - The Ivalice Chronicles" },
+  { id: 2591280, name: "F1 Manager 2024" },
+  { id: 3551340, name: "Football Manager 26" },
+  { id: 1761390, name: "Hatsune Miku: Project DIVA Mega Mix+" },
+  { id: 2495100, name: "Hello Kitty Island Adventures" },
+  { id: 1817230, name: "Hi-Fi Rush" },
+  { id: 990080, name: "Hogwarts Legacy" },
+  { id: 1244460, name: "Jurassic World Evolution 2" },
+  { id: 2958130, name: "Jurassic World Evolution 3" },
+  { id: 2375550, name: "Like A Dragon: Gaiden" },
+  { id: 2072450, name: "Like A Dragon: Infinite Wealth" },
+  { id: 1805480, name: "Like A Dragon: Ishin" },
+  { id: 3061810, name: "Like A Dragon: Pirate Yakuza In Hawaii" },
+  { id: 2058190, name: "Lost Judgement" },
+  { id: 1941540, name: "Mafia: The Old Country" },
+  { id: 368260, name: "Marvel's Midnight Suns" },
+  { id: 2679460, name: "Metaphor: ReFantazio" },
+  { id: 2246340, name: "Monster Hunter: Wilds" },
+  { id: 1971870, name: "Mortal Kombat 1" },
+  { id: 2161700, name: "Persona 3 Reload" },
+  { id: 2878980, name: "NBA 2K25" },
+  { id: 3472040, name: "NBA 2K26" },
+  { id: 1809700, name: "Persona 3 Portable" },
+  { id: 1602010, name: "Persona 4 Arena Ultimax" },
+  { id: 1113000, name: "Persona 4 Golden" },
+  { id: 1687950, name: "Persona 5 Royal" },
+  { id: 1382330, name: "Persona 5 Strikers" },
+  { id: 2254740, name: "Persona 5 Tactica" },
+  { id: 2688950, name: "Planet Coaster 2" },
+  { id: 703080, name: "Planet Zoo" },
+  { id: 2288350, name: "RAIDOU Remastered" },
+  { id: 2050650, name: "Resident Evil 4 + Separate Ways" },
+  { id: 1875830, name: "Shin Megami Tensei V: Vengeance" },
+  { id: 2361770, name: "SHINOBI: Art Of Vengeance" },
+  { id: 1029690, name: "Sniper Elite 5" },
+  { id: 2169200, name: "Sniper Elite: Resistance" },
+  { id: 752480, name: "Sniper Elite VR" },
+  { id: 2055290, name: "Sonic Colors: Ultimate" },
+  { id: 1237320, name: "Sonic Frontiers" },
+  { id: 1794960, name: "Sonic Origins" },
+  { id: 2486820, name: "Sonic Racing: CrossWorlds" },
+  { id: 2022670, name: "Sonic Superstars" },
+  { id: 2513280, name: "Sonic X Shadow Generations" },
+  { id: 1777620, name: "Soul Hackers 2" },
+  { id: 3489700, name: "Stellar Blade" },
+  { id: 1364780, name: "Street Fighter 6" },
+  { id: 1909950, name: "Super Robot Wars Y" },
+  { id: 491540, name: "The Bus" },
+  { id: 2680010, name: "The First Berserker: Khazan" },
+  { id: 2951630, name: "Total War: PHARAOH DYNASTIES" },
+  { id: 1142710, name: "Total War: WARHAMMER III" },
+  { id: 1649080, name: "Two Point Campus" },
+  { id: 2185060, name: "Two Point Museum" },
+  { id: 1451190, name: "Undisputed" },
+  { id: 1611910, name: "Warhammer 40,000: Chaos Gate - Daemonhunters" },
+  { id: 1844380, name: "Warhammer Age Of Sigmar: Realms of Ruin" },
+  { id: 3274580, name: "Anno 117: Pax Romana" },
+  { id: 916440, name: "Anno 1800" },
+  { id: 3035570, name: "Assassin's Creed Mirage" },
+  { id: 3159330, name: "Assassin's Creed Shadows" },
+  { id: 2840770, name: "Avatar: Frontiers Of Pandora" },
+  { id: 2751000, name: "Prince Of Persia: The Lost Crown" },
+  { id: 2842040, name: "Star Wars Outlaws" },
+  { id: 2195250, name: "EA Sports FC 24" },
+  { id: 2669320, name: "EA Sports FC 25" },
+  { id: 3405690, name: "EA Sports FC 26" },
+  { id: 3230400, name: "EA Sports Madden 26" },
+  { id: 1677350, name: "EA Sports PGA TOUR" },
+  { id: 1849250, name: "EA Sports WRC" },
+  { id: 2488620, name: "F1 24" },
+  { id: 3059520, name: "F1 25" },
+  { id: 1307710, name: "Grid Legends" },
+  { id: 1462570, name: "Lost In Random" },
+  { id: 1846380, name: "Need For Speed Unbound" },
+  { id: 2124490, name: "Silent Hill 2 Remake" },
+  { id: 2058180, name: "Judgment" },
+  { id: 3595270, name: "Call of Duty: Modern Warfare III" },
+  { id: 2853730, name: "Skull and Bones" },
+  { id: 1774580, name: "STAR WARS Jedi: Survivor" },
+  { id: 1551360, name: "Forza Horizon 5" },
+  { id: 1716740, name: "Starfield" },
+  { id: 1845910, name: "Dragon Age: The Veilguard" },
+  { id: 1903340, name: "Clair Obscur: Expedition 33" },
+  { id: 2527390, name: "Dead Rising Deluxe Remaster" },
+  { id: 1874000, name: "Life is Strange: Double Exposure" },
+  { id: 1477940, name: "Unknown 9: Awakening" },
+  { id: 2561580, name: "Horizon Zero Dawn Remastered" },
+  { id: 2638890, name: "Onimusha: Way of the Sword" },
+  { id: 3046600, name: "Onimusha 2: Samurai's Destiny" },
+  { id: 1785650, name: "TopSpin 2K25" }
+];
+
+const DENUVO_GAME_IDS = DENUVO_GAMES_LIST.map(g => g.id);
 
 export default function Store() {
   const { t } = useLanguage();
   const { startDownload } = useContext(DownloadContext);
+  
+  // ============================================
+  // ALL STATES
+  // ============================================
   const [games, setGames] = useState([]);
   const [featuredGames, setFeaturedGames] = useState([]);
+  const [denuvoGames, setDenuvoGames] = useState([]);
   const [epicSales, setEpicSales] = useState([]);
   const [steamSales, setSteamSales] = useState([]);
   const [topSellers, setTopSellers] = useState([]);
@@ -30,8 +154,6 @@ export default function Store() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [viewMode, setViewMode] = useState('grid');
   const [sortBy, setSortBy] = useState('title');
-  const [downloadPopup, setDownloadPopup] = useState(null);
-  const [animatingGame, setAnimatingGame] = useState(null);
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [showGridMenu, setShowGridMenu] = useState(false);
   const [pagination, setPagination] = useState({
@@ -42,8 +164,50 @@ export default function Store() {
   });
 
   const [popularSlide, setPopularSlide] = useState(0);
+  const [isSearchMode, setIsSearchMode] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [randomGames, setRandomGames] = useState([]);
+  const [popularSearches, setPopularSearches] = useState([]);
+  const searchInputRef = useRef(null);
+  const debounceRef = useRef(null);
   
-  // Get display title - use database title first
+  // Hover Popup State
+  const [hoveredGame, setHoveredGame] = useState(null);
+  const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
+  const hoverTimeoutRef = useRef(null);
+
+  const handleGameHover = (game, e) => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const windowWidth = window.innerWidth;
+    const popupWidth = 320; // Estimated width
+    
+    let left = rect.right + 20;
+    // If not enough space on right, show on left
+    if (left + popupWidth > windowWidth) {
+      left = rect.left - popupWidth - 20;
+    }
+    
+    setPopupPosition({
+      top: rect.top,
+      left: left
+    });
+    setHoveredGame(game);
+  };
+
+  const handleGameLeave = () => {
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoveredGame(null);
+    }, 100);
+  };
+
+  // ============================================
+  // UTILITY FUNCTIONS
+  // ============================================
   const getDisplayTitle = (g) => {
     if (g?.title && g.title !== 'Unknown Game' && !g.title.startsWith('Unknown Game (')) {
       return g.title;
@@ -54,34 +218,202 @@ export default function Store() {
     const steamName = SteamNameService.getGameName(parseInt(g?.id || g?.appId || 0));
     return steamName || g?.title || g?.name || 'Unknown Game';
   };
-  
-  // Auto-scroll popular games every 5 seconds
-  useEffect(() => {
-    if (games.length === 0) return;
-    const timer = setInterval(() => {
-      setPopularSlide((prev) => (prev + 1) % Math.min(games.length, 7));
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [games.length]);
-  const [isSearchMode, setIsSearchMode] = useState(false);
-  const [searchResults, setSearchResults] = useState([]);
-  const [suggestions, setSuggestions] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [randomGames, setRandomGames] = useState([]);
-  const [popularSearches, setPopularSearches] = useState([]);
-  const searchInputRef = useRef(null);
-  const debounceRef = useRef(null);
 
-  useEffect(() => {
-    const handleClickOutside = () => {
-      setShowSortMenu(false);
-      setShowGridMenu(false);
-    };
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+  const getMatchTypeColor = (matchType) => {
+    switch (matchType) {
+      case 'exact': return 'text-green-600';
+      case 'prefix': return 'text-blue-600';
+      case 'contains': return 'text-purple-600';
+      case 'keyword': return 'text-orange-600';
+      case 'fuzzy': return 'text-gray-600';
+      default: return 'text-gray-600';
+    }
+  };
+
+  const getMatchTypeLabel = (matchType) => {
+    switch (matchType) {
+      case 'exact': return 'Exact Match';
+      case 'prefix': return 'Starts With';
+      case 'contains': return 'Contains';
+      case 'keyword': return 'Keyword';
+      case 'fuzzy': return 'Similar';
+      default: return 'Match';
+    }
+  };
+
+  // ============================================
+  // FETCH DENUVO FEATURED GAMES (7 GAMES ONLY)
+  // ============================================
+  const fetchDenuvoFeaturedGames = useCallback(async (forceRefresh = false) => {
+    try {
+      const cacheKey = 'denuvo_featured_games_v6'; // Updated version for new logic
+      const cacheTimeKey = cacheKey + '_time';
+      const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes exact
+
+      const cached = localStorage.getItem(cacheKey);
+      const cacheTime = localStorage.getItem(cacheTimeKey);
+      
+      const now = Date.now();
+      const isCacheValid = cached && cacheTime && (now - parseInt(cacheTime)) < CACHE_DURATION;
+
+      // Use cache if valid and not forced
+      if (isCacheValid && !forceRefresh) {
+        try {
+          const cachedData = JSON.parse(cached);
+          if (cachedData && cachedData.length === 7 && cachedData.every(g => DENUVO_GAME_IDS.includes(parseInt(g.id)))) {
+            setDenuvoGames(cachedData);
+            setFeaturedGames(cachedData);
+            const timeLeft = Math.ceil((CACHE_DURATION - (now - parseInt(cacheTime))) / 60000);
+            console.log(`✅ Loaded 7 verified Denuvo games from cache. Next refresh in ~${timeLeft} mins.`);
+            return;
+          }
+        } catch (e) {
+          console.error('Cache parse error:', e);
+        }
+      }
+
+      console.log('🔄 Randomizing 7 Denuvo games (Every 30 mins)...');
+      
+      // Shuffle and pick 7 random games from DENUVO_GAMES_LIST (using verified list directly)
+      // Ensure we use the verified names from DENUVO_GAMES_LIST
+      const shuffled = [...DENUVO_GAMES_LIST].sort(() => 0.5 - Math.random());
+      const selectedGames = shuffled.slice(0, 7);
+      
+      console.log('🎲 Selected Denuvo games:', selectedGames.map(g => g.name));
+      
+      // Fetch game details from backend for these IDs
+      try {
+        const promises = selectedGames.map(async (baseGame) => {
+          const appId = baseGame.id;
+          try {
+            // Try to get from games collection first for metadata
+            const response = await fetch(`http://localhost:3000/api/games/${appId}`);
+            if (response.ok) {
+              const data = await response.json();
+              return {
+                id: appId,
+                appId: appId,
+                title: baseGame.name, // STRICT: Always use verified name from hardcoded list
+                name: baseGame.name,  // STRICT: Always use verified name from hardcoded list
+                description: data.description || data.short_description || '',
+                developer: data.developer || data.developers?.[0] || 'Unknown',
+                cover: data.headerImage || `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/library_hero.jpg`,
+                headerImage: data.headerImage || `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/header.jpg`,
+                rating: data.rating || 0,
+                size: data.size || '50 GB',
+              };
+            }
+            
+            // Fallback: create basic game object
+            return {
+              id: appId,
+              appId: appId,
+              title: baseGame.name, // STRICT
+              name: baseGame.name,  // STRICT
+              cover: `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/library_hero.jpg`,
+              headerImage: `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/header.jpg`,
+              developer: 'Unknown',
+              description: 'Denuvo protected game',
+            };
+          } catch (error) {
+            console.error(`Error fetching game ${appId}:`, error);
+            return {
+              id: appId,
+              appId: appId,
+              title: baseGame.name, // STRICT
+              name: baseGame.name,  // STRICT
+              cover: `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/library_hero.jpg`,
+              headerImage: `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/header.jpg`,
+            };
+          }
+        });
+        
+        const gamesWithDetails = await Promise.all(promises);
+        
+        // Filter out any failed fetches (should be rare with fallbacks)
+        const validGames = gamesWithDetails.filter(game => game !== null);
+        
+        if (validGames.length > 0) {
+          // Fetch logos from SteamGridDB for each game
+          try {
+            const logoPromises = validGames.map(async (game) => {
+              try {
+                // Try to fetch logo from SteamGridDB
+                const logoResponse = await fetch(`http://localhost:3000/api/steamgriddb/logo/${game.id}`);
+                if (logoResponse.ok) {
+                  const logoData = await logoResponse.json();
+                  return {
+                    ...game,
+                    logo: logoData.logo || null
+                  };
+                }
+                // Fallback to direct SteamGridDB URL if API fails (client-side try)
+                return {
+                    ...game,
+                    logo: `https://cdn2.steamgriddb.com/steam/${game.id}/logo.png`
+                };
+              } catch (error) {
+                console.error(`Error fetching logo for ${game.id}:`, error);
+                // Fallback to direct URL
+                return {
+                    ...game,
+                    logo: `https://cdn2.steamgriddb.com/steam/${game.id}/logo.png`
+                };
+              }
+            });
+            
+            const gamesWithLogos = await Promise.all(logoPromises);
+            
+            setDenuvoGames(gamesWithLogos);
+            setFeaturedGames(gamesWithLogos);
+            
+            localStorage.setItem(cacheKey, JSON.stringify(gamesWithLogos));
+            localStorage.setItem(cacheTimeKey, Date.now().toString());
+            
+            console.log(`✅ Randomized & Saved 7 Denuvo games with logos. Verified names maintained.`);
+          } catch (logoError) {
+            console.error('Error fetching logos:', logoError);
+            // Use games without logos
+            setDenuvoGames(validGames);
+            setFeaturedGames(validGames);
+            
+            localStorage.setItem(cacheKey, JSON.stringify(validGames));
+            localStorage.setItem(cacheTimeKey, Date.now().toString());
+            
+            console.log(`✅ Randomized & Saved 7 Denuvo games (without logos). Verified names maintained.`);
+          }
+        } else {
+          throw new Error('No valid games found');
+        }
+        
+      } catch (error) {
+        console.error('Error fetching game details:', error);
+        throw error;
+      }
+      
+    } catch (error) {
+      console.error('❌ Error in fetchDenuvoFeaturedGames:', error);
+      
+      // Ultimate fallback: use hardcoded popular games (with verified names manually)
+      const fallbackGames = [
+        { id: 2358720, title: 'Black Myth: Wukong', name: 'Black Myth: Wukong', cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/2358720/library_hero.jpg', developer: 'Game Science' },
+        { id: 1285190, title: 'Borderlands 4', name: 'Borderlands 4', cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1285190/library_hero.jpg', developer: 'Gearbox Software' },
+        { id: 1091500, title: 'Cyberpunk 2077', name: 'Cyberpunk 2077', cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1091500/library_hero.jpg', developer: 'CD PROJEKT RED' },
+        { id: 1174180, title: 'Red Dead Redemption 2', name: 'Red Dead Redemption 2', cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1174180/library_hero.jpg', developer: 'Rockstar Games' },
+        { id: 1245620, title: 'ELDEN RING', name: 'ELDEN RING', cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/library_hero.jpg', developer: 'FromSoftware' },
+        { id: 1593500, title: 'God of War', name: 'God of War', cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1593500/library_hero.jpg', developer: 'Santa Monica Studio' },
+        { id: 1551360, title: 'Forza Horizon 5', name: 'Forza Horizon 5', cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1551360/library_hero.jpg', developer: 'Playground Games' },
+      ];
+      
+      console.log('⚠️ Using hardcoded fallback games due to error');
+      setDenuvoGames(fallbackGames);
+      setFeaturedGames(fallbackGames);
+    }
   }, []);
 
+  // ============================================
+  // FETCH GAMES
+  // ============================================
   const fetchGames = useCallback(async (page = 1, append = false) => {
     if (page === 1) setLoading(true);
     else setLoadingMore(true);
@@ -97,7 +429,6 @@ export default function Store() {
       const response = await fetch(`http://localhost:3000/api/games?${params}`);
       const data = await response.json();
       
-      // Transform games to add cover field
       const transformedGames = data.games.map(game => ({
         ...game,
         cover: game.headerImage || `http://localhost:3000/api/steam/image/${game.appId || game.id}/header`,
@@ -118,74 +449,15 @@ export default function Store() {
     }
   }, [search, selectedCategory]);
 
-  const fetchPopularSearches = async () => {
-    try {
-      const searches = ['Cyberpunk', 'GTA', 'Resident Evil', 'Call of Duty', 'FIFA', 'Assassin\'s Creed', 'The Witcher', 'Red Dead'];
-      setPopularSearches(searches);
-    } catch (error) {
-      console.error('Error fetching popular searches:', error);
-    }
-  };
-
-  const fetchRandomGames = async () => {
-    try {
-      // Check cache first
-      const cacheKey = 'random_games_cache';
-      const cached = localStorage.getItem(cacheKey);
-      const cacheTime = localStorage.getItem(cacheKey + '_time');
-      const CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 hours
-
-      if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < CACHE_DURATION) {
-        setRandomGames(JSON.parse(cached));
-        return;
-      }
-
-      const response = await fetch('http://localhost:3000/api/games?limit=12');
-      const data = await response.json();
-      const shuffled = data.games.sort(() => 0.5 - Math.random());
-      const randomSlice = shuffled.slice(0, 6);
-      setRandomGames(randomSlice);
-      
-      // Save to cache
-      localStorage.setItem(cacheKey, JSON.stringify(randomSlice));
-      localStorage.setItem(cacheKey + '_time', Date.now().toString());
-    } catch (error) {
-      console.error('Error fetching random games:', error);
-    }
-  };
-
-  const fetchFeaturedGames = async () => {
-    try {
-      // Check cache first
-      const cacheKey = 'featured_games_cache';
-      const cached = localStorage.getItem(cacheKey);
-      const cacheTime = localStorage.getItem(cacheKey + '_time');
-      const CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 hours
-
-      if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < CACHE_DURATION) {
-        setFeaturedGames(JSON.parse(cached));
-        return;
-      }
-
-      const response = await fetch('http://localhost:3000/api/games/featured');
-      const data = await response.json();
-      setFeaturedGames(data);
-      
-      // Save to cache
-      localStorage.setItem(cacheKey, JSON.stringify(data));
-      localStorage.setItem(cacheKey + '_time', Date.now().toString());
-    } catch (error) {
-      console.error('Error fetching featured games:', error);
-    }
-  };
-
+  // ============================================
+  // FETCH EPIC SALES
+  // ============================================
   const fetchEpicSales = async () => {
     try {
-      // Check cache first
       const cacheKey = 'epic_sales_cache';
       const cached = localStorage.getItem(cacheKey);
       const cacheTime = localStorage.getItem(cacheKey + '_time');
-      const CACHE_DURATION = 4 * 60 * 60 * 1000; // 4 hours
+      const CACHE_DURATION = 4 * 60 * 60 * 1000;
 
       if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < CACHE_DURATION) {
         const cachedData = JSON.parse(cached);
@@ -200,36 +472,31 @@ export default function Store() {
         const sliced = data.data.slice(0, 6);
         setEpicSales(sliced);
         setEpicLastUpdated(data.lastUpdated);
-        
-        // Save to cache
         localStorage.setItem(cacheKey, JSON.stringify({ sales: sliced, lastUpdated: data.lastUpdated }));
         localStorage.setItem(cacheKey + '_time', Date.now().toString());
       } else {
-        // Fallback to mock data if API fails or no data
         setEpicSales([
           { id: 1, title: 'Control', image: 'https://cdn1.epicgames.com/offer/9bcf5a4dc1d54cb6ab1a42f3a70c5cf4/EGS_Control_RemedyEntertainment_S1_2560x1440-c7c10b0ac2d6fc1e3b5e5a8e8e8e8e8e', discount: 'FREE', originalPrice: '$29.99', discountPrice: 'FREE', url: 'https://store.epicgames.com/en-US/p/control' },
           { id: 2, title: 'Fallout 3', image: 'https://cdn1.epicgames.com/offer/ac2c3883be2542b98a0268d9d80d50f2/EGS_Fallout3GameoftheYearEdition_BethesdaGameStudios_S1_2560x1440-c7c10b0ac2d6fc1e3b5e5a8e8e8e8e8e', discount: 'FREE', originalPrice: '$19.99', discountPrice: 'FREE', url: 'https://store.epicgames.com/en-US/p/fallout-3-game-of-the-year-edition' },
           { id: 3, title: 'Metro: Last Light Redux', image: 'https://cdn1.epicgames.com/offer/424c217bce8c4cd2a1fcaab9aca2972f/EGS_MetroLastLightRedux_4AGames_S1_2560x1440-c7c10b0ac2d6fc1e3b5e5a8e8e8e8e8e', discount: 'FREE', originalPrice: '$19.99', discountPrice: 'FREE', url: 'https://store.epicgames.com/en-US/p/metro-last-light-redux' },
-          { id: 4, title: 'Borderlands 3', image: 'https://cdn1.epicgames.com/offer/9773aa1aa54f4f7b80e44bef04986cea/EGS_Borderlands3_GearboxSoftware_S1_2560x1440-c7c10b0ac2d6fc1e3b5e5a8e8e8e8e8e', discount: '75%', originalPrice: '$59.99', discountPrice: '$14.99', url: 'https://store.epicgames.com/en-US/p/borderlands-3' },
-          { id: 5, title: 'Assassins Creed Valhalla', image: 'https://cdn1.epicgames.com/offer/9bcf5a4dc1d54cb6ab1a42f3a70c5cf4/EGS_AssassinsCreedValhalla_Ubisoft_S1_2560x1440-c7c10b0ac2d6fc1e3b5e5a8e8e8e8e8e', discount: '60%', originalPrice: '$59.99', discountPrice: '$23.99', url: 'https://store.epicgames.com/en-US/p/assassins-creed-valhalla' },
-          { id: 6, title: 'Grand Theft Auto V', image: 'https://cdn1.epicgames.com/0584d2013f0149a791e7b9bad0eec102/offer/GTAV_EGS_Artwork_1200x1600_Portrait%20Store%20Banner-1200x1600-382243057711adf80322ed2aeea42191.jpg', discount: 'FREE', originalPrice: '$29.99', discountPrice: 'FREE', url: 'https://store.epicgames.com/en-US/p/grand-theft-auto-v' }
         ]);
         setEpicLastUpdated(null);
       }
     } catch (error) {
       console.error('Error fetching Epic sales:', error);
       setEpicSales([]);
-      setEpicLastUpdated(null);
     }
   };
 
+  // ============================================
+  // FETCH STEAM SALES
+  // ============================================
   const fetchSteamSales = async () => {
     try {
-      // Check cache first
       const cacheKey = 'steam_sales_cache';
       const cached = localStorage.getItem(cacheKey);
       const cacheTime = localStorage.getItem(cacheKey + '_time');
-      const CACHE_DURATION = 4 * 60 * 60 * 1000; // 4 hours
+      const CACHE_DURATION = 4 * 60 * 60 * 1000;
 
       if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < CACHE_DURATION) {
         const cachedData = JSON.parse(cached);
@@ -244,36 +511,30 @@ export default function Store() {
         const sliced = data.data.slice(0, 6);
         setSteamSales(sliced);
         setSteamLastUpdated(data.lastUpdated);
-        
-        // Save to cache
         localStorage.setItem(cacheKey, JSON.stringify({ sales: sliced, lastUpdated: data.lastUpdated }));
         localStorage.setItem(cacheKey + '_time', Date.now().toString());
       } else {
-        // Fallback to mock data if API fails or no data
         setSteamSales([
           { id: 1, title: 'Cyberpunk 2077', image: 'https://cdn.akamai.steamstatic.com/steam/apps/1091500/header.jpg', discount: '50%', originalPrice: '$59.99', discountPrice: '$29.99', url: 'https://store.steampowered.com/app/1091500/Cyberpunk_2077/' },
           { id: 2, title: 'The Witcher 3', image: 'https://cdn.akamai.steamstatic.com/steam/apps/292030/header.jpg', discount: '70%', originalPrice: '$39.99', discountPrice: '$11.99', url: 'https://store.steampowered.com/app/292030/The_Witcher_3_Wild_Hunt/' },
-          { id: 3, title: 'Red Dead Redemption 2', image: 'https://cdn.akamai.steamstatic.com/steam/apps/1174180/header.jpg', discount: '60%', originalPrice: '$59.99', discountPrice: '$23.99', url: 'https://store.steampowered.com/app/1174180/Red_Dead_Redemption_2/' },
-          { id: 4, title: 'Elden Ring', image: 'https://cdn.akamai.steamstatic.com/steam/apps/1245620/header.jpg', discount: '30%', originalPrice: '$59.99', discountPrice: '$41.99', url: 'https://store.steampowered.com/app/1245620/ELDEN_RING/' },
-          { id: 5, title: 'God of War', image: 'https://cdn.akamai.steamstatic.com/steam/apps/1593500/header.jpg', discount: '50%', originalPrice: '$49.99', discountPrice: '$24.99', url: 'https://store.steampowered.com/app/1593500/God_of_War/' },
-          { id: 6, title: 'Horizon Zero Dawn', image: 'https://cdn.akamai.steamstatic.com/steam/apps/1151640/header.jpg', discount: '60%', originalPrice: '$49.99', discountPrice: '$19.99', url: 'https://store.steampowered.com/app/1151640/Horizon_Zero_Dawn_Complete_Edition/' }
         ]);
         setSteamLastUpdated(null);
       }
     } catch (error) {
       console.error('Error fetching Steam sales:', error);
       setSteamSales([]);
-      setSteamLastUpdated(null);
     }
   };
 
+  // ============================================
+  // FETCH TOP SELLERS
+  // ============================================
   const fetchTopSellers = async () => {
     try {
-      // Check cache first
       const cacheKey = 'top_sellers_cache';
       const cached = localStorage.getItem(cacheKey);
       const cacheTime = localStorage.getItem(cacheKey + '_time');
-      const CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 hours
+      const CACHE_DURATION = 12 * 60 * 60 * 1000;
 
       if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < CACHE_DURATION) {
         setTopSellers(JSON.parse(cached));
@@ -284,8 +545,6 @@ export default function Store() {
       const data = await response.json();
       if (data.success) {
         setTopSellers(data.data);
-        
-        // Save to cache
         localStorage.setItem(cacheKey, JSON.stringify(data.data));
         localStorage.setItem(cacheKey + '_time', Date.now().toString());
       }
@@ -318,75 +577,48 @@ export default function Store() {
     }
   };
 
-  const loadMoreGames = () => {
-    if (pagination.hasNext && !loadingMore) {
-      fetchGames(pagination.currentPage + 1, true);
-    }
-  };
-
-  const refreshSalesData = async () => {
-    setRefreshingSales(true);
+  const fetchPopularSearches = async () => {
     try {
-      // Force refresh sales data
-      await fetch('http://localhost:3000/api/sales/refresh', { method: 'POST' });
-      // Refetch the data
-      await Promise.all([fetchEpicSales(), fetchSteamSales()]);
+      const searches = ['Cyberpunk', 'GTA', 'Resident Evil', 'Call of Duty', 'FIFA', 'Assassin\'s Creed', 'The Witcher', 'Red Dead'];
+      setPopularSearches(searches);
     } catch (error) {
-      console.error('Error refreshing sales data:', error);
-    } finally {
-      setRefreshingSales(false);
+      console.error('Error fetching popular searches:', error);
     }
   };
 
-  useEffect(() => {
-    localStorage.setItem('sidebarCollapsed', sidebarCollapsed);
-    window.dispatchEvent(new Event('sidebarToggle'));
-  }, [sidebarCollapsed]);
+  const fetchRandomGames = async () => {
+    try {
+      const cacheKey = 'random_games_cache';
+      const cached = localStorage.getItem(cacheKey);
+      const cacheTime = localStorage.getItem(cacheKey + '_time');
+      const CACHE_DURATION = 6 * 60 * 60 * 1000;
 
-  useEffect(() => {
-    fetchFeaturedGames();
-    fetchGames();
-    fetchRandomGames();
-    fetchPopularSearches();
-    fetchEpicSales();
-    fetchSteamSales();
-    fetchTopSellers();
-    fetchMostPlayed();
-    fetchTopUpcoming();
-    
-    // Auto-refresh sales data every 30 minutes
-    const salesInterval = setInterval(() => {
-      fetchEpicSales();
-      fetchSteamSales();
-    }, 30 * 60 * 1000);
-    
-    return () => clearInterval(salesInterval);
-  }, [fetchGames]);
-
-  useEffect(() => {
-    if (isSearchMode) {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      if (search.trim().length >= 2) {
-        debounceRef.current = setTimeout(() => performSearch(search), 300);
-      } else {
-        setSearchResults([]);
-        setSuggestions([]);
-        setShowSuggestions(false);
+      if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < CACHE_DURATION) {
+        setRandomGames(JSON.parse(cached));
+        return;
       }
-      return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-    } else {
-      const delayedSearch = setTimeout(() => fetchGames(1, false), 500);
-      return () => clearTimeout(delayedSearch);
-    }
-  }, [search, selectedCategory, isSearchMode]);
 
+      const response = await fetch('http://localhost:3000/api/games?limit=12');
+      const data = await response.json();
+      const shuffled = data.games.sort(() => 0.5 - Math.random());
+      const randomSlice = shuffled.slice(0, 6);
+      setRandomGames(randomSlice);
+      localStorage.setItem(cacheKey, JSON.stringify(randomSlice));
+      localStorage.setItem(cacheKey + '_time', Date.now().toString());
+    } catch (error) {
+      console.error('Error fetching random games:', error);
+    }
+  };
+
+  // ============================================
+  // SEARCH FUNCTIONS
+  // ============================================
   const performSearch = async (searchQuery) => {
     setIsSearching(true);
     try {
       const response = await fetch(`http://localhost:3000/api/search/search?q=${encodeURIComponent(searchQuery)}&limit=20`);
       const data = await response.json();
       
-      // Transform search results
       const transformedResults = (data.results || []).map(game => ({
         ...game,
         cover: game.headerImage || `http://localhost:3000/api/steam/image/${game.appId}/header`,
@@ -440,48 +672,30 @@ export default function Store() {
     setShowSuggestions(false);
   };
 
-  const handleSuggestionClick = (suggestion) => {
-    setSearch(suggestion.name);
-    setShowSuggestions(false);
-    performSearch(suggestion.name);
-  };
-
-  const getMatchTypeColor = (matchType) => {
-    switch (matchType) {
-      case 'exact': return 'text-green-600';
-      case 'prefix': return 'text-blue-600';
-      case 'contains': return 'text-purple-600';
-      case 'keyword': return 'text-orange-600';
-      case 'fuzzy': return 'text-gray-600';
-      default: return 'text-gray-600';
+  // ============================================
+  // OTHER HANDLERS
+  // ============================================
+  const loadMoreGames = () => {
+    if (pagination.hasNext && !loadingMore) {
+      fetchGames(pagination.currentPage + 1, true);
     }
   };
 
-  const getMatchTypeLabel = (matchType) => {
-    switch (matchType) {
-      case 'exact': return 'Exact Match';
-      case 'prefix': return 'Starts With';
-      case 'contains': return 'Contains';
-      case 'keyword': return 'Keyword';
-      case 'fuzzy': return 'Similar';
-      default: return 'Match';
+  const refreshSalesData = async () => {
+    setRefreshingSales(true);
+    try {
+      await fetch('http://localhost:3000/api/sales/refresh', { method: 'POST' });
+      await Promise.all([fetchEpicSales(), fetchSteamSales()]);
+    } catch (error) {
+      console.error('Error refreshing sales data:', error);
+    } finally {
+      setRefreshingSales(false);
     }
   };
-
-  useEffect(() => {
-    if (featuredGames.length === 0) return;
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % featuredGames.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [featuredGames.length]);
-
-  const categories = ['All', 'Action', 'RPG', 'Adventure', 'Shooter', 'Strategy', 'Horror', 'Racing', 'Stealth'];
 
   const handleDownloadClick = (game, event) => {
     event.preventDefault();
     event.stopPropagation();
-    // Ensure game has required fields for download
     const gameForDownload = {
       id: game.id || game.appId,
       title: game.title || game.name,
@@ -492,20 +706,337 @@ export default function Store() {
     startDownload(gameForDownload);
   };
 
-  return (
-    <div className="min-h-screen relative animate-fadeInSlow" style={{ paddingTop: '104px' }}>
-      {/* Featured Popular Games Section - Denuvo Badge & Trending */}
-      {!isSearchMode && <FeaturedPopularGames />}
+  // ============================================
+  // CAROUSEL NAVIGATION
+  // ============================================
+  const handlePrevSlide = (e) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    setCurrentSlide((prev) => prev === 0 ? featuredGames.length - 1 : prev - 1);
+  };
 
-      {/* Search Mode Overlay */}
+  const handleNextSlide = (e) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    setCurrentSlide((prev) => (prev + 1) % featuredGames.length);
+  };
+
+  const handleDotClick = (index, e) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    setCurrentSlide(index);
+  };
+
+  // ============================================
+  // USE EFFECTS
+  // ============================================
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowSortMenu(false);
+      setShowGridMenu(false);
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('sidebarCollapsed', sidebarCollapsed);
+    window.dispatchEvent(new Event('sidebarToggle'));
+  }, [sidebarCollapsed]);
+
+  useEffect(() => {
+    fetchDenuvoFeaturedGames();
+    fetchGames();
+    fetchRandomGames();
+    fetchPopularSearches();
+    fetchEpicSales();
+    fetchSteamSales();
+    fetchTopSellers();
+    fetchMostPlayed();
+    fetchTopUpcoming();
+    
+    // Auto-refresh Denuvo games every 30 minutes
+    const denuvoInterval = setInterval(() => {
+        fetchDenuvoFeaturedGames(true); // Force refresh
+    }, 30 * 60 * 1000);
+
+    const salesInterval = setInterval(() => {
+      fetchEpicSales();
+      fetchSteamSales();
+    }, 30 * 60 * 1000);
+    
+    return () => {
+        clearInterval(salesInterval);
+        clearInterval(denuvoInterval);
+    };
+  }, [fetchGames, fetchDenuvoFeaturedGames]);
+
+  useEffect(() => {
+    if (isSearchMode) {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (search.trim().length >= 2) {
+        debounceRef.current = setTimeout(() => performSearch(search), 300);
+      } else {
+        setSearchResults([]);
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+      return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    } else {
+      const delayedSearch = setTimeout(() => fetchGames(1, false), 500);
+      return () => clearTimeout(delayedSearch);
+    }
+  }, [search, selectedCategory, isSearchMode]);
+
+  // Auto-slide carousel
+  useEffect(() => {
+    if (featuredGames.length === 0) return;
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % featuredGames.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [featuredGames.length]);
+
+  // Auto-scroll popular games
+  useEffect(() => {
+    if (games.length === 0) return;
+    const timer = setInterval(() => {
+      setPopularSlide((prev) => (prev + 1) % Math.min(games.length, 7));
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [games.length]);
+
+  const categories = ['All', 'Action', 'RPG', 'Adventure', 'Shooter', 'Strategy', 'Horror', 'Racing', 'Stealth'];
+
+  // ============================================
+  // RENDER JSX
+  // ============================================
+  
+  // DEBUG: Log để kiểm tra
+  console.log('🎮 Featured Games:', featuredGames.length, 'games');
+  console.log('🔍 Search Mode:', isSearchMode);
+  console.log('📊 Featured Games Data:', featuredGames);
+  
+  return (
+    <>
+      {/* ============================================ */}
+      {/* DENUVO FEATURED GAMES CAROUSEL - 7 GAMES */}
+      {/* ============================================ */}
+      {featuredGames.length > 0 && !isSearchMode && (
+        <div className="relative h-[700px] overflow-hidden mb-8 mt-[104px]">
+          {/* Lighter gradient overlay for better visibility */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/40 pointer-events-none z-10" />
+          
+          {featuredGames.map((game, index) => (
+            <div
+              key={game.id}
+              className={`absolute inset-0 transition-all duration-1000 ease-out ${
+                index === currentSlide ? 'opacity-100 scale-100 z-[1]' : 'opacity-0 scale-100 z-0'
+              }`}
+            >
+              <Link to={`/game/${game.id}`} className="absolute inset-0 cursor-pointer group">
+                {/* Hero Image with better sizing - use library_hero for quality, object-cover for fit */}
+                <img
+                  src={`https://cdn.cloudflare.steamstatic.com/steam/apps/${game.id}/library_hero.jpg`}
+                  alt={game.title}
+                  className={`w-full h-full object-cover object-center transition-all duration-1000 ${
+                    index === currentSlide ? 'scale-100 brightness-110' : 'scale-100 brightness-100'
+                  } group-hover:scale-105 group-hover:brightness-125`}
+                  onError={(e) => {
+                    // Fallback to header if hero fails
+                    e.target.src = game.cover || `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.id}/header.jpg`;
+                  }}
+                />
+                {/* Lighter gradient for better visibility */}
+                <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent group-hover:via-black/10 transition-all duration-500" />
+                
+                {index === currentSlide && (
+                  <div className="absolute top-8 left-8 z-20 animate-slideInLeft">
+                    <div className="inline-flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-red-600 via-red-500 to-orange-600 rounded-full shadow-2xl border border-red-400/30 backdrop-blur-sm">
+                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5zm0 18c-3.86-.96-7-5.36-7-9V8.77l7-3.11 7 3.11V11c0 3.64-3.14 8.04-7 9z"/>
+                      </svg>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold uppercase tracking-wider">Protected by</span>
+                        <span className="text-sm font-black">DENUVO</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="absolute inset-0 flex items-end p-12 md:p-16 z-10">
+                  <div className={`max-w-4xl w-full transition-all duration-1000 ${
+                    index === currentSlide ? 'translate-x-0 opacity-100 delay-300' : '-translate-x-20 opacity-0'
+                  }`}>
+                    {/* Game Logo from SteamGridDB or Title */}
+                    <div className="h-40 mb-6 flex items-end justify-start">
+                        {game.logo ? (
+                          <img 
+                            src={game.logo} 
+                            alt={game.title}
+                            className="max-w-[400px] max-h-[160px] object-contain drop-shadow-[0_4px_6px_rgba(0,0,0,0.5)] filter brightness-110 contrast-110"
+                            onError={(e) => {
+                              // Fallback to text title if logo fails
+                              e.target.style.display = 'none';
+                              e.target.nextElementSibling.style.display = 'block';
+                            }}
+                          />
+                        ) : (
+                             // Attempt to load direct if prop missing (backup)
+                             <img 
+                                src={`https://cdn2.steamgriddb.com/steam/${game.id}/logo.png`} 
+                                alt={game.title}
+                                className="max-w-[400px] max-h-[160px] object-contain drop-shadow-[0_4px_6px_rgba(0,0,0,0.5)] filter brightness-110 contrast-110"
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                  e.target.nextElementSibling.style.display = 'block';
+                                }}
+                              />
+                        )}
+                        {/* Fallback Text Title */}
+                        <h2 className={`text-5xl md:text-7xl font-bold drop-shadow-2xl text-white tracking-tight leading-none ${game.logo ? 'hidden' : 'block'}`} style={{ display: 'none' }}>
+                          {game.title || game.name}
+                        </h2>
+                    </div>
+                    
+                    <div className="flex items-center gap-3 mb-4 flex-wrap">
+                      <span className="px-4 py-2 bg-red-600/80 backdrop-blur-sm rounded-lg font-bold border border-red-400/30 flex items-center gap-2 shadow-lg">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
+                        </svg>
+                        Denuvo
+                      </span>
+                      
+                      {game.rating && game.rating !== 0 && (
+                        <span className="px-4 py-2 bg-yellow-500/30 text-yellow-300 rounded-lg font-bold backdrop-blur-sm border border-yellow-500/20">
+                          ⭐ {game.rating}
+                        </span>
+                      )}
+                      
+                      {game.developer && (
+                        <span className="px-4 py-2 bg-blue-500/30 text-blue-300 rounded-lg backdrop-blur-sm border border-blue-500/20 text-sm font-medium">
+                          {game.developer}
+                        </span>
+                      )}
+                      
+                      {game.size && (
+                        <span className="px-4 py-2 bg-gray-700/50 text-gray-200 rounded-lg text-sm">
+                          {game.size}
+                        </span>
+                      )}
+                    </div>
+                    
+                    {game.description && (
+                      <p className="text-xl text-gray-100 mb-6 line-clamp-3 max-w-2xl leading-relaxed drop-shadow-lg">
+                        {game.description}
+                      </p>
+                    )}
+                    
+                    <div className="flex gap-4 flex-wrap">
+                      <button 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          window.location.href = `/game/${game.id}`;
+                        }}
+                        className="px-8 py-4 bg-gradient-to-r from-white to-gray-100 text-black rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-white/20 transition-all duration-300 hover:scale-105 flex items-center gap-2 group/btn"
+                      >
+                        <span className="group-hover/btn:scale-110 transition-transform">▶</span>
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </div>
+          ))}
+          
+          {/* Slide Indicators */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 z-20">
+            {featuredGames.map((_, i) => (
+              <button
+                key={i}
+                onClick={(e) => handleDotClick(i, e)}
+                className={`transition-all duration-300 rounded-full ${
+                  i === currentSlide 
+                    ? 'w-12 h-3 bg-gradient-to-r from-red-500 via-orange-500 to-red-600 shadow-lg shadow-red-500/50' 
+                    : 'w-3 h-3 bg-gray-600 hover:bg-gray-500'
+                }`}
+                aria-label={`Go to slide ${i + 1}`}
+              />
+            ))}
+          </div>
+          
+          {/* Navigation Arrows */}
+          <button 
+            onClick={handlePrevSlide}
+            className="absolute left-6 top-1/2 -translate-y-1/2 w-14 h-14 bg-black/40 hover:bg-black/70 backdrop-blur-sm border border-white/20 hover:border-red-500/60 text-white rounded-full transition-all duration-300 z-20 flex items-center justify-center group shadow-lg"
+            aria-label="Previous slide"
+          >
+            <svg className="w-6 h-6 group-hover:scale-125 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          
+          <button 
+            onClick={handleNextSlide}
+            className="absolute right-6 top-1/2 -translate-y-1/2 w-14 h-14 bg-black/40 hover:bg-black/70 backdrop-blur-sm border border-white/20 hover:border-red-500/60 text-white rounded-full transition-all duration-300 z-20 flex items-center justify-center group shadow-lg"
+            aria-label="Next slide"
+          >
+            <svg className="w-6 h-6 group-hover:scale-125 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+          
+          {/* Progress Bar */}
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-800/50 z-20">
+            <div 
+              className="h-full bg-gradient-to-r from-red-500 via-orange-500 to-red-600 transition-all duration-500 ease-linear shadow-lg shadow-red-500/50"
+              style={{ width: `${((currentSlide + 1) / featuredGames.length) * 100}%` }}
+            />
+          </div>
+
+          {/* Counter */}
+          <div className="absolute top-8 right-8 z-20 px-4 py-2 bg-black/60 backdrop-blur-md rounded-full border border-white/10">
+            <span className="text-sm font-bold">
+              <span className="text-red-400">{currentSlide + 1}</span>
+              <span className="text-gray-400"> / </span>
+              <span className="text-white">{featuredGames.length}</span>
+            </span>
+          </div>
+        </div>
+      )}
+      
+      {/* Loading State for Carousel */}
+      {!isSearchMode && featuredGames.length === 0 && (
+        <div className="h-[700px] flex items-center justify-center bg-gray-900/50 mb-8 mt-[104px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+            <p className="text-gray-400">Loading Denuvo Games...</p>
+          </div>
+        </div>
+      )}
+
+    <div className="min-h-screen relative animate-fadeInSlow" style={{ paddingTop: '0px' }}>
+      
+      {/* DEBUG INFO */}
+      {!isSearchMode && (
+        <div className="fixed top-0 left-0 bg-red-500 text-white p-2 z-[999] text-xs">
+          DEBUG: Featured={featuredGames.length} | Search={isSearchMode.toString()} | Slide={currentSlide}
+        </div>
+      )}
+      
+      {/* ============================================ */}
+      {/* SEARCH MODE OVERLAY */}
+      {/* ============================================ */}
       {isSearchMode && (
         <div className="fixed inset-0 bg-black/95 backdrop-blur-xl z-[150] overflow-y-auto transition-all duration-700 ease-out" onClick={handleOverlayClick}>
-          {/* Search Bar */}
           <div className="sticky top-0 z-50 bg-black/90 backdrop-blur-xl border-b border-gray-800/50 p-6">
             <div className="max-w-4xl mx-auto">
               <div className="flex items-center gap-3 mb-4">
                 <button onClick={handleClearSearch} className="text-gray-400 hover:text-white transition-colors p-2">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
                 </button>
                 <h2 className="text-xl font-bold text-white">Search Games</h2>
               </div>
@@ -541,8 +1072,6 @@ export default function Store() {
                   </button>
                 </div>
               </div>
-
-              {/* Suggestions - bỏ dropdown suggestions */}
             </div>
           </div>
 
@@ -557,7 +1086,7 @@ export default function Store() {
 
             {searchResults.length > 0 && (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
-                {searchResults.map((game, index) => (
+                {searchResults.map((game) => (
                   <Link 
                     key={game.appId} 
                     to={`/game/${game.appId}`}
@@ -579,7 +1108,6 @@ export default function Store() {
                         }
                       }}
                     />
-                    {/* Logo overlay */}
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
                       <img 
                         src={`https://cdn2.steamgriddb.com/steam/${game.appId}/logo.png`}
@@ -632,101 +1160,12 @@ export default function Store() {
         </div>
       )}
 
-      {/* Featured Games Carousel */}
-      {featuredGames.length > 0 && (
-        <div className="relative h-[700px] overflow-hidden rounded-2xl">
-          {/* Background blur layers */}
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/40 to-black pointer-events-none z-10" />
-          
-          {featuredGames.map((game, index) => (
-            <div
-              key={game.id}
-              className={`absolute inset-0 transition-all duration-1000 ease-out ${index === currentSlide ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
-            >
-              <Link to={`/game/${game.id}`} className="absolute inset-0 cursor-pointer group">
-                <img
-                  src={game.cover}
-                  alt={game.title}
-                  className={`w-full h-full object-cover transition-all duration-1000 ${index === currentSlide ? 'scale-100' : 'scale-110'} group-hover:scale-105`}
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-black via-black/50 to-transparent group-hover:via-black/40 transition-all duration-500" />
-                
-                {/* Featured Badge */}
-                {index === currentSlide && (
-                  <div className="absolute top-8 left-8 z-20 animate-slideRight">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-pink-600 rounded-full shadow-lg">
-                      <span className="text-xl">⭐</span>
-                      <span className="text-sm font-bold uppercase tracking-widest">Featured</span>
-                    </div>
-                  </div>
-                )}
-                
-                <div className="absolute inset-0 flex items-end p-12 md:p-16 z-10">
-                  <div className={`max-w-4xl w-full transition-all duration-1000 ${index === currentSlide ? 'translate-x-0 opacity-100 delay-300' : '-translate-x-20 opacity-0'}`}>
-                    <h2 className="text-5xl md:text-7xl font-bold mb-4 drop-shadow-lg">{game.title}</h2>
-                    <div className="flex items-center gap-3 mb-4 flex-wrap">
-                      <DenuvoIndicator gameId={game.id} gameName={game.title} />
-                      {game.rating && game.rating !== 0 && (
-                        <span className="px-4 py-2 bg-yellow-500/30 text-yellow-300 rounded-lg font-bold backdrop-blur-sm border border-yellow-500/20">⭐ {game.rating}</span>
-                      )}
-                      <span className="px-4 py-2 bg-blue-500/30 text-blue-300 rounded-lg backdrop-blur-sm border border-blue-500/20 text-sm font-medium">{game.developer}</span>
-                      <span className="px-4 py-2 bg-gray-700/50 text-gray-200 rounded-lg text-sm">{game.size}</span>
-                    </div>
-                    <p className="text-xl text-gray-200 mb-6 line-clamp-3 max-w-2xl leading-relaxed">{game.description}</p>
-                    
-                    {/* CTA Buttons */}
-                    <div className="flex gap-4 flex-wrap">
-                      <button className="px-8 py-4 bg-gradient-to-r from-white to-gray-100 text-black rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-white/20 transition-all duration-300 hover:scale-105 flex items-center gap-2 group/btn">
-                        <span className="group-hover/btn:scale-110 transition-transform">▶</span>
-                        View Details
-                      </button>
-                      <button className="px-8 py-4 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-cyan-500/50 transition-all duration-300 hover:scale-105 flex items-center gap-2">
-                        <span>⬇</span>
-                        Download
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            </div>
-          ))}
-          
-          {/* Slide Indicators */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 z-20">
-            {featuredGames.map((_, i) => (
-              <button
-                key={i}
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCurrentSlide(i); }}
-                className={`transition-all duration-300 rounded-full ${
-                  i === currentSlide 
-                    ? 'w-12 h-3 bg-gradient-to-r from-cyan-500 to-blue-500 shadow-lg shadow-cyan-500/50' 
-                    : 'w-3 h-3 bg-gray-600 hover:bg-gray-500'
-                }`}
-              />
-            ))}
-          </div>
-          
-          {/* Navigation Arrows */}
-          <button 
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCurrentSlide(currentSlide === 0 ? featuredGames.length - 1 : currentSlide - 1); }}
-            className="absolute left-6 top-1/2 -translate-y-1/2 w-14 h-14 bg-black/40 hover:bg-black/70 backdrop-blur-sm border border-white/20 hover:border-cyan-500/60 text-white rounded-full transition-all duration-300 z-20 flex items-center justify-center group shadow-lg"
-          >
-            <svg className="w-6 h-6 group-hover:scale-125 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-          </button>
-          <button 
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCurrentSlide(currentSlide === featuredGames.length - 1 ? 0 : currentSlide + 1); }}
-            className="absolute right-6 top-1/2 -translate-y-1/2 w-14 h-14 bg-black/40 hover:bg-black/70 backdrop-blur-sm border border-white/20 hover:border-cyan-500/60 text-white rounded-full transition-all duration-300 z-20 flex items-center justify-center group shadow-lg"
-          >
-            <svg className="w-6 h-6 group-hover:scale-125 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-          </button>
-        </div>
-      )}
-
-      {/* Compact Top Header */}
+      {/* ============================================ */}
+      {/* COMPACT TOP HEADER */}
+      {/* ============================================ */}
       {!isSearchMode && (
       <div className="fixed top-8 left-0 right-0 z-[60] bg-black/95 backdrop-blur-xl border-b border-gray-800 shadow-lg">
         <div className="px-6 py-3 flex items-center justify-between">
-          {/* Left: Logo Toggle */}
           <button 
             onClick={() => {
               const newState = !sidebarCollapsed;
@@ -737,11 +1176,10 @@ export default function Store() {
             className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           >
             <img src="/Saitma-Meme-PNG-758x473-removebg-preview.png" alt="Logo" className="w-7 h-7 object-contain" />
-            <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500">crackvìnghèo</h1>
+            <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500">crackvÃ¬nghÃ¨o</h1>
             <span className="px-2 py-1 bg-gray-800 rounded-full text-xs">{pagination.totalGames}</span>
           </button>
           
-          {/* Center: Compact Search */}
           <div className="flex-1 max-w-md mx-6">
             <div className="relative">
               <input
@@ -758,9 +1196,7 @@ export default function Store() {
             </div>
           </div>
           
-          {/* Right: Auth & Controls */}
           <div className="flex items-center gap-2">
-            {/* Discord Link */}
             <a 
               href="https://discord.gg/VxMDfTSq" 
               target="_blank" 
@@ -776,7 +1212,7 @@ export default function Store() {
                 <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z"/>
               </svg>
             </a>
-            
+
             {/* View Controls */}
             <div className="flex gap-1 mr-3">
               <button 
@@ -784,14 +1220,18 @@ export default function Store() {
                 className={`p-1.5 rounded transition ${viewMode === 'grid' ? 'bg-cyan-600' : 'bg-gray-800 hover:bg-gray-700'}`}
                 title="Grid view"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" /></svg>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                </svg>
               </button>
               <button 
                 onClick={() => setViewMode('list')} 
                 className={`p-1.5 rounded transition ${viewMode === 'list' ? 'bg-cyan-600' : 'bg-gray-800 hover:bg-gray-700'}`}
                 title="List view"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
               </button>
             </div>
             
@@ -863,22 +1303,33 @@ export default function Store() {
       </div>
       )}
 
+      {/* ============================================ */}
+      {/* MAIN CONTENT */}
+      {/* ============================================ */}
       <div className="p-8">
         {/* Top Sellers, Most Played, Top Upcoming */}
         {!loading && games.length > 0 && (
         <div className="mb-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Top Sellers */}
             <div>
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">Top Sellers</h2>
+                <h2 className="text-2xl font-bold">🏆 Top Sellers</h2>
                 <button className="text-cyan-400 hover:text-cyan-300 transition-colors">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </button>
               </div>
               <div className="space-y-4">
-                {games.slice(0, 5).map((game) => (
+                {games.slice(0, 5).map((game, index) => (
                   <Link key={game.id} to={`/game/${game.id}`} className="flex gap-4 p-3 bg-gray-800/30 hover:bg-gray-800/50 rounded-lg transition-all duration-300 group">
-                    <img src={game.cover} alt={game.title} className="w-20 h-28 object-cover rounded" onError={(e) => e.target.src = 'https://via.placeholder.com/80x112/1f1f2e/888888?text=Game'} />
+                    <div className="relative">
+                      <img src={game.cover} alt={game.title} className="w-20 h-28 object-cover rounded" onError={(e) => e.target.src = 'https://via.placeholder.com/80x112/1f1f2e/888888?text=Game'} />
+                      <div className="absolute -top-2 -left-2 w-6 h-6 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-xs font-bold text-black shadow-lg">
+                        {index + 1}
+                      </div>
+                    </div>
                     <div className="flex-1 flex flex-col justify-between">
                       <div>
                         <h3 className="font-bold text-sm mb-1 group-hover:text-cyan-400 transition-colors line-clamp-2">{getDisplayTitle(game)}</h3>
@@ -893,42 +1344,62 @@ export default function Store() {
                 ))}
               </div>
             </div>
+
+            {/* Most Played */}
             <div>
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">Most Played</h2>
+                <h2 className="text-2xl font-bold">🎮 Most Played</h2>
                 <button className="text-cyan-400 hover:text-cyan-300 transition-colors">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </button>
               </div>
               <div className="space-y-4">
-                {games.slice(5, 10).map((game) => (
+                {games.slice(5, 10).map((game, index) => (
                   <Link key={game.id} to={`/game/${game.id}`} className="flex gap-4 p-3 bg-gray-800/30 hover:bg-gray-800/50 rounded-lg transition-all duration-300 group">
-                    <img src={game.cover} alt={game.title} className="w-20 h-28 object-cover rounded" onError={(e) => e.target.src = 'https://via.placeholder.com/80x112/1f1f2e/888888?text=Game'} />
+                    <div className="relative">
+                      <img src={game.cover} alt={game.title} className="w-20 h-28 object-cover rounded" onError={(e) => e.target.src = 'https://via.placeholder.com/80x112/1f1f2e/888888?text=Game'} />
+                      <div className="absolute -top-2 -left-2 w-6 h-6 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center text-xs font-bold text-black shadow-lg">
+                        {index + 1}
+                      </div>
+                    </div>
                     <div className="flex-1 flex flex-col justify-between">
                       <div>
                         <h3 className="font-bold text-sm mb-1 group-hover:text-cyan-400 transition-colors line-clamp-2">{getDisplayTitle(game)}</h3>
-                        <div className="text-xs text-gray-400">Free</div>
+                        <div className="text-xs">
+                          <span className="px-2 py-0.5 bg-green-600/30 text-green-300 rounded font-bold">Free</span>
+                        </div>
                       </div>
                     </div>
                   </Link>
                 ))}
               </div>
             </div>
+
+            {/* Top Upcoming */}
             <div>
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">Top Upcoming</h2>
+                <h2 className="text-2xl font-bold">🔥 Top Upcoming</h2>
                 <button className="text-cyan-400 hover:text-cyan-300 transition-colors">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </button>
               </div>
               <div className="space-y-4">
-                {games.slice(10, 15).map((game) => (
+                {games.slice(10, 15).map((game, index) => (
                   <Link key={game.id} to={`/game/${game.id}`} className="flex gap-4 p-3 bg-gray-800/30 hover:bg-gray-800/50 rounded-lg transition-all duration-300 group">
-                    <img src={game.cover} alt={game.title} className="w-20 h-28 object-cover rounded" onError={(e) => e.target.src = 'https://via.placeholder.com/80x112/1f1f2e/888888?text=Game'} />
+                    <div className="relative">
+                      <img src={game.cover} alt={game.title} className="w-20 h-28 object-cover rounded" onError={(e) => e.target.src = 'https://via.placeholder.com/80x112/1f1f2e/888888?text=Game'} />
+                      <div className="absolute -top-2 -left-2 w-6 h-6 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center text-xs font-bold text-black shadow-lg">
+                        {index + 1}
+                      </div>
+                    </div>
                     <div className="flex-1 flex flex-col justify-between">
                       <div>
                         <h3 className="font-bold text-sm mb-1 group-hover:text-cyan-400 transition-colors line-clamp-2">{getDisplayTitle(game)}</h3>
-                        <div className="text-xs text-gray-400">Coming Soon</div>
+                        <div className="text-xs text-gray-400 mb-1">Coming Soon</div>
                       </div>
                       <div className="text-sm text-white font-bold">$49.99</div>
                     </div>
@@ -940,6 +1411,7 @@ export default function Store() {
         </div>
         )}
 
+        {/* Loading State */}
         {loading && (
           <div className="flex items-center justify-center py-20">
             <div className="flex items-center gap-3">
@@ -949,7 +1421,9 @@ export default function Store() {
           </div>
         )}
 
-        {/* Epic Games Sale Section */}
+        {/* ============================================ */}
+        {/* EPIC GAMES SALE SECTION */}
+        {/* ============================================ */}
         {!loading && (
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
@@ -965,10 +1439,12 @@ export default function Store() {
             </div>
             <a href="https://store.epicgames.com/en-US/free-games" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-colors font-medium">
               See All
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </a>
           </div>
-          <div className="flex gap-4 overflow-x-auto pb-4">
+          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
             {epicSales.length > 0 ? epicSales.map((game, index) => (
               <div key={index} className="flex-shrink-0 w-48 group cursor-pointer" onClick={(e) => {
                 e.preventDefault();
@@ -977,10 +1453,11 @@ export default function Store() {
                 <div className="relative aspect-[3/4] rounded-lg overflow-hidden mb-2 bg-gray-800">
                   <img src={game.image} alt={game.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={(e) => e.target.src = 'https://via.placeholder.com/300x400/1f1f2e/888888?text=Epic+Game'} />
                   {game.discount !== "0%" && (
-                    <div className="absolute top-2 left-2 bg-purple-600 text-white px-2 py-1 rounded text-xs font-bold">
+                    <div className="absolute top-2 left-2 bg-purple-600 text-white px-2 py-1 rounded text-xs font-bold shadow-lg">
                       {game.discount}
                     </div>
                   )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
                 <h3 className="font-semibold text-sm mb-1 group-hover:text-purple-400 transition-colors line-clamp-2">{game.title}</h3>
                 <div className="flex items-center gap-2">
@@ -997,7 +1474,9 @@ export default function Store() {
         </div>
         )}
 
-        {/* Steam Sale Section */}
+        {/* ============================================ */}
+        {/* STEAM SALE SECTION */}
+        {/* ============================================ */}
         {!loading && (
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
@@ -1013,10 +1492,12 @@ export default function Store() {
             </div>
             <a href="https://store.steampowered.com/specials" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors font-medium">
               See All
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </a>
           </div>
-          <div className="flex gap-4 overflow-x-auto pb-4">
+          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
             {steamSales.length > 0 ? steamSales.map((game, index) => (
               <div key={index} className="flex-shrink-0 w-48 group cursor-pointer" onClick={(e) => {
                 e.preventDefault();
@@ -1025,10 +1506,11 @@ export default function Store() {
                 <div className="relative aspect-[3/4] rounded-lg overflow-hidden mb-2 bg-gray-800">
                   <img src={game.image} alt={game.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={(e) => e.target.src = 'https://via.placeholder.com/300x400/1f1f2e/888888?text=Steam+Game'} />
                   {game.discount && (
-                    <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded text-xs font-bold">
+                    <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded text-xs font-bold shadow-lg">
                       {game.discount}
                     </div>
                   )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
                 <h3 className="font-semibold text-sm mb-1 group-hover:text-blue-400 transition-colors line-clamp-2">{game.title}</h3>
                 <div className="flex items-center gap-2">
@@ -1045,19 +1527,27 @@ export default function Store() {
         </div>
         )}
 
-        {/* Browse by Tags */}
+        {/* ============================================ */}
+        {/* BROWSE BY TAGS */}
+        {/* ============================================ */}
         {!loading && (
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">🏷️ Browse by Tags</h2>
             <Link to="/tags" className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors font-medium">
               See All
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </Link>
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-4">
+          <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
             {['Action', 'RPG', 'Adventure', 'Shooter', 'Strategy', 'Horror', 'Racing', 'Stealth', 'Puzzle', 'Sports'].map(tag => (
-              <Link key={tag} to={`/tags?tag=${tag}`} className="flex-shrink-0 px-6 py-3 bg-gradient-to-r from-gray-800 to-gray-700 hover:from-cyan-600 hover:to-cyan-500 rounded-lg font-medium transition-all duration-300 hover:scale-105 whitespace-nowrap">
+              <Link 
+                key={tag} 
+                to={`/tags?tag=${tag}`} 
+                className="flex-shrink-0 px-6 py-3 bg-gradient-to-r from-gray-800 to-gray-700 hover:from-cyan-600 hover:to-cyan-500 rounded-lg font-medium transition-all duration-300 hover:scale-105 whitespace-nowrap shadow-lg hover:shadow-cyan-500/20"
+              >
                 {tag}
               </Link>
             ))}
@@ -1065,93 +1555,124 @@ export default function Store() {
         </div>
         )}
 
-        {/* Games Grid */}
+        {/* ============================================ */}
+        {/* GAMES GRID */}
+        {/* ============================================ */}
         <div className={viewMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-5' : 'flex flex-col gap-4'}>
           {games.map(game => {
             const displayTitle = getDisplayTitle(game);
+            const isDenuvo = DENUVO_GAME_IDS.includes(parseInt(game.id));
             return (
-              <div key={game.id} className="group relative">
+              <div 
+                key={game.id} 
+                className="group relative"
+                onMouseEnter={(e) => handleGameHover(game, e)}
+                onMouseLeave={handleGameLeave}
+              >
                 {viewMode === 'grid' ? (
                   <Link to={`/game/${game.id}`} className="block relative rounded-xl overflow-hidden bg-gray-900 transition-all duration-500 hover:scale-105 hover:z-10 hover:shadow-2xl hover:shadow-cyan-500/50" style={{ aspectRatio: '2/3' }}>
-                  <img 
-                    src={`https://cdn2.steamgriddb.com/steam_grid/${game.id}.png`}
-                    alt={displayTitle}
-                    className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110 group-hover:brightness-110"
-                    onError={(e) => {
-                      if (e.target.src.includes('steamgriddb')) {
-                        e.target.src = `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.id}/library_600x900.jpg`;
-                      } else if (e.target.src.includes('library_600x900')) {
-                        e.target.src = `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.id}/header.jpg`;
-                      } else {
-                        e.target.style.display = 'none';
-                        e.target.parentElement.innerHTML = `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900"><span class="text-gray-500 text-sm text-center px-4">${displayTitle}</span></div>`;
-                      }
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  <div className="absolute inset-0 ring-0 group-hover:ring-2 ring-cyan-500/40 rounded-xl transition-all duration-500" />
-                  
-                  {/* Logo overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <img 
-                      src={`https://cdn2.steamgriddb.com/steam/${game.id}/logo.png`}
-                      alt={`${displayTitle} logo`}
-                      className="max-w-[70%] max-h-[30%] object-contain drop-shadow-2xl opacity-0 group-hover:opacity-90 transition-opacity duration-500"
-                      onError={(e) => e.target.style.display = 'none'}
+                      src={`https://cdn2.steamgriddb.com/steam_grid/${game.id}.png`}
+                      alt={displayTitle}
+                      className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110 group-hover:brightness-110"
+                      onError={(e) => {
+                        if (e.target.src.includes('steamgriddb')) {
+                          e.target.src = `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.id}/library_600x900.jpg`;
+                        } else if (e.target.src.includes('library_600x900')) {
+                          e.target.src = `https://cdn.cloudflare.steamstatic.com/steam/apps/${game.id}/header.jpg`;
+                        } else {
+                          e.target.style.display = 'none';
+                          e.target.parentElement.innerHTML = `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900"><span class="text-gray-500 text-sm text-center px-4">${displayTitle}</span></div>`;
+                        }
+                      }}
                     />
-                  </div>
-                  
-                  {/* Title only shows on hover */}
-                  <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-1 group-hover:translate-y-0 transition-all duration-300 opacity-0 group-hover:opacity-100">
-                    <h3 className="font-bold text-sm line-clamp-2 mb-2">
-                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600">
-                        {displayTitle}
-                      </span>
-                    </h3>
-                    <div className="flex items-center gap-2 text-xs">
-                      <DenuvoIndicator gameId={game.id} gameName={displayTitle} />
-                      {game.rating && <span className="px-2 py-0.5 bg-yellow-500/80 text-white rounded font-bold">⭐ {game.rating}</span>}
-                      <span className="text-gray-300">{game.size}</span>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="absolute inset-0 ring-0 group-hover:ring-2 ring-cyan-500/40 rounded-xl transition-all duration-500" />
+                    
+                    {/* Logo overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <img 
+                        src={`https://cdn2.steamgriddb.com/steam/${game.id}/logo.png`}
+                        alt={`${displayTitle} logo`}
+                        className="max-w-[70%] max-h-[30%] object-contain drop-shadow-2xl opacity-0 group-hover:opacity-90 transition-opacity duration-500"
+                        onError={(e) => e.target.style.display = 'none'}
+                      />
                     </div>
-                  </div>
-                  
-                  {/* Denuvo Badge (top-right corner, always visible) */}
-                  <div className="absolute top-2 right-2 z-10">
-                    <DenuvoIndicator gameId={game.id} gameName={displayTitle} />
-                  </div>
-                </Link>
-              ) : (
-                <Link to={`/game/${game.id}`} className="flex gap-4 p-4 bg-gray-900/50 rounded-xl hover:bg-gray-800/70 hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-500">
-                  <img src={game.cover} alt={displayTitle} className="w-32 h-44 object-cover rounded-lg transition-transform duration-500 hover:scale-105" />
-                  <div className="flex-1 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-bold group-hover:text-cyan-400 transition-colors duration-300">{displayTitle}</h3>
-                        <DenuvoIndicator gameId={game.id} gameName={displayTitle} />
-                      </div>
-                      <p className="text-sm text-gray-400 mb-2">{game.developer}</p>
-                      <p className="text-sm text-gray-500 line-clamp-2 mb-3">{game.description}</p>
-                      <div className="flex items-center gap-3">
-                        <span className="px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded text-sm font-bold">⭐ {game.rating}</span>
-                        <span className="text-sm text-gray-400">{game.genres}</span>
-                        <span className="text-sm text-gray-500">{game.size}</span>
+                    
+                    {/* Title on hover */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-1 group-hover:translate-y-0 transition-all duration-300 opacity-0 group-hover:opacity-100">
+                      <h3 className="font-bold text-sm line-clamp-2 mb-2">
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600">
+                          {displayTitle}
+                        </span>
+                      </h3>
+                      <div className="flex items-center gap-2 text-xs">
+                        {isDenuvo && (
+                          <span className="px-2 py-0.5 bg-red-600/80 text-white rounded font-bold flex items-center gap-1">
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
+                            </svg>
+                            D
+                          </span>
+                        )}
+                        {game.rating && <span className="px-2 py-0.5 bg-yellow-500/80 text-white rounded font-bold">â­ {game.rating}</span>}
+                        {game.size && <span className="text-gray-300">{game.size}</span>}
                       </div>
                     </div>
-                  </div>
-                </Link>
-              )}
+                    
+                    {/* Denuvo Badge (top-right, always visible) */}
+                    {isDenuvo && (
+                      <div className="absolute top-2 right-2 z-10">
+                        <div className="px-2 py-1 bg-red-600/90 backdrop-blur-sm rounded text-xs font-bold flex items-center gap-1 shadow-lg">
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
+                          </svg>
+                          D
+                        </div>
+                      </div>
+                    )}
+                  </Link>
+                ) : (
+                  <Link to={`/game/${game.id}`} className="flex gap-4 p-4 bg-gray-900/50 rounded-xl hover:bg-gray-800/70 hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-500">
+                    <img src={game.cover} alt={displayTitle} className="w-32 h-44 object-cover rounded-lg transition-transform duration-500 hover:scale-105" />
+                    <div className="flex-1 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-xl font-bold group-hover:text-cyan-400 transition-colors duration-300">{displayTitle}</h3>
+                          {isDenuvo && (
+                            <span className="px-2 py-1 bg-red-600/80 text-white rounded text-xs font-bold flex items-center gap-1">
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
+                              </svg>
+                              Denuvo
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-400 mb-2">{game.developer}</p>
+                        <p className="text-sm text-gray-500 line-clamp-2 mb-3">{game.description}</p>
+                        <div className="flex items-center gap-3">
+                          {game.rating && <span className="px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded text-sm font-bold">â­ {game.rating}</span>}
+                          {game.genres && <span className="text-sm text-gray-400">{game.genres}</span>}
+                          {game.size && <span className="text-sm text-gray-500">{game.size}</span>}
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                )}
               </div>
             );
           })}
         </div>
 
-        {/* Load More Button */}
+        {/* ============================================ */}
+        {/* LOAD MORE BUTTON */}
+        {/* ============================================ */}
         {pagination.hasNext && (
           <div className="flex justify-center mt-8">
             <button
               onClick={loadMoreGames}
               disabled={loadingMore}
-              className="px-8 py-3 bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-600 rounded-lg font-medium transition flex items-center gap-2"
+              className="px-8 py-3 bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-600 rounded-lg font-medium transition flex items-center gap-2 shadow-lg hover:shadow-cyan-500/50"
             >
               {loadingMore ? (
                 <>
@@ -1168,6 +1689,107 @@ export default function Store() {
           </div>
         )}
       </div>
+
+      {/* ============================================ */}
+      {/* HOVER POPUP CARD */}
+      {/* ============================================ */}
+      {hoveredGame && (
+        <div 
+          className="fixed z-[100] w-80 bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-xl shadow-2xl overflow-hidden transition-all duration-200 pointer-events-none animate-fadeInSlow"
+          style={{ 
+            top: Math.min(popupPosition.top, window.innerHeight - 400), // Prevent going off bottom
+            left: popupPosition.left
+          }}
+        >
+          <div className="relative h-48">
+            <img 
+              src={hoveredGame.cover} 
+              alt={hoveredGame.title} 
+              className="w-full h-full object-cover"
+              onError={(e) => e.target.src = `https://cdn.cloudflare.steamstatic.com/steam/apps/${hoveredGame.id}/header.jpg`}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent" />
+            
+            {DENUVO_GAME_IDS.includes(parseInt(hoveredGame.id)) && (
+              <div className="absolute top-3 right-3 px-2 py-1 bg-red-600/90 backdrop-blur-md rounded-lg text-xs font-bold shadow-lg border border-red-500/30 flex items-center gap-1 text-white">
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
+                </svg>
+                DENUVO
+              </div>
+            )}
+          </div>
+          
+          <div className="p-5 -mt-10 relative z-10">
+            <h3 className="font-bold text-xl text-white mb-2 leading-tight drop-shadow-md">
+              {getDisplayTitle(hoveredGame)}
+            </h3>
+            
+            <div className="flex items-center gap-2 mb-4 flex-wrap">
+              <span className="px-2 py-0.5 bg-gray-800 border border-gray-700 rounded text-xs text-gray-300">
+                {hoveredGame.developer || 'Unknown Dev'}
+              </span>
+              {hoveredGame.rating && (
+                <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-400 border border-yellow-500/20 rounded text-xs font-bold">
+                  ★ {hoveredGame.rating}
+                </span>
+              )}
+              <span className="text-xs text-gray-500">{hoveredGame.size}</span>
+            </div>
+            
+            <p className="text-sm text-gray-400 line-clamp-3 leading-relaxed">
+              {hoveredGame.description || 'No description available.'}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================ */}
+      {/* CSS ANIMATIONS */}
+      {/* ============================================ */}
+      <style jsx>{`
+        @keyframes slideInLeft {
+          from {
+            opacity: 0;
+            transform: translateX(-50px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        
+        @keyframes fadeInSlow {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        
+        .animate-slideInLeft {
+          animation: slideInLeft 0.8s ease-out;
+        }
+        
+        .animate-fadeInSlow {
+          animation: fadeInSlow 0.5s ease-out;
+        }
+
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </div>
+    </>
   );
 }
+
+// ============================================
+// END OF STORE.JSX
+// ============================================

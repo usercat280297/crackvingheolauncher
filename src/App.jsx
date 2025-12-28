@@ -1,5 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
+import SplashScreen from './components/SplashScreen'
 import Tutorial from './components/Tutorial'
 import WelcomeScreen from './components/WelcomeScreen'
 import { ToastDisplay } from './components/ToastDisplay'
@@ -133,6 +134,9 @@ export default function App() {
   
   return (
     <div className="flex flex-col h-screen bg-black text-white overflow-hidden">
+      {/* App Loading Splash Screen */}
+      <SplashScreen onComplete={() => setIsLoading(false)} />
+
       {/* Welcome Screen for first-time users */}
       <WelcomeScreen />
       
